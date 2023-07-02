@@ -1,5 +1,7 @@
 # Tic-Tac-Toe in Fortran with Raylib
 
+![thumbnail](./thumbnail.png)
+
 ## Quick Start
 
 Dependancies:
