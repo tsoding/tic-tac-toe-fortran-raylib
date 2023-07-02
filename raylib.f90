@@ -2,7 +2,6 @@
 
 module raylib
   use iso_c_binding, only: c_int32_t, c_char, c_int, c_bool, c_float
-  use raylib_utils
   implicit none
 
   integer(c_int32_t) :: BLACK
