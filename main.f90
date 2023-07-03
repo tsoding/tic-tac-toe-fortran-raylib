@@ -4,6 +4,7 @@ program main
   use iso_c_binding, only: c_int, c_int32_t, C_NULL_CHAR
   use raylib
   use game
+  use ai
   implicit none
 
   ! Measure units:
@@ -80,79 +81,6 @@ program main
   end do
 
 contains
-  recursive function who_wins(player, x, y) result(who)
-    implicit none
-    integer, intent(in) :: player, x, y
-    type(TLine) :: ignore
-    integer :: who, opponent, next
-    integer :: ix, iy
-
-    board(x, y) = player
-
-    if (player_won(board, CELL_CROSS, ignore)) then
-       who = CELL_CROSS
-       board(x, y) = 0
-       return
-    end if
-
-    if (player_won(board, CELL_KNOTT, ignore)) then
-       who = CELL_KNOTT
-       board(x, y) = 0
-       return
-    end if
-
-    if (board_full(board)) then
-       who = 0
-       board(x, y) = 0
-       return
-    end if
-
-    opponent = 3 - player
-
-    who = player
-    do ix=1,board_size_cl
-       do iy=1,board_size_cl
-          if (board(ix, iy) == CELL_EMPTY) then
-             next = who_wins(opponent, ix, iy)
-             if (next == 0) who = 0
-             if (next == opponent) then
-                who = opponent
-                board(x, y) = 0
-                return
-             end if
-          end if
-       end do
-    end do
-    board(x, y) = 0
-  end function who_wins
-
-  function ai_next_move(player, ox, oy) result(giveup)
-    implicit none
-    integer, intent(in)  :: player
-    integer, intent(out) :: ox, oy
-    logical :: giveup
-    integer :: x, y, next
-    giveup = .true.
-    do x=1,board_size_cl
-       do y=1,board_size_cl
-          if (board(x, y) == CELL_EMPTY) then
-             next = who_wins(player, x, y)
-             if (next == 0) then
-                giveup = .false.
-                ox = x
-                oy = y
-             end if
-             if (next == player) then
-                giveup = .false.
-                ox = x
-                oy = y
-                return
-             end if
-          end if
-       end do
-    end do
-  end function ai_next_move
-
   subroutine render_tie_state()
     implicit none
     do x_cl=1,board_size_cl
@@ -251,7 +179,7 @@ contains
              end select
           end do
        end do
-       if (.not. ai_next_move(current_player, next_x_cl, next_y_cl)) then
+       if (.not. ai_next_move(board, current_player, next_x_cl, next_y_cl)) then
           board(next_x_cl, next_y_cl) = current_player
           if (player_won(board, CELL_CROSS, final_line)) then
              state = STATE_WON
