@@ -5,6 +5,10 @@ program main
   use raylib
   implicit none
 
+  type :: TLine
+     integer :: x, y, dx, dy
+  end type TLine
+
   ! Measure units:
   ! - *_px - pixels
   ! - *_cl - cells
@@ -17,6 +21,7 @@ program main
   integer(c_int32_t), parameter :: cross_color            = color(z'FFFF3030')
   integer(c_int32_t), parameter :: knot_color             = color(z'FF3030FF')
   integer(c_int32_t), parameter :: background_color       = color(z'FF181818')
+  integer(c_int32_t), parameter :: strikethrough_color    = color(z'FFFFFFFF')
   integer(c_int),     parameter :: board_size_cl          = 3
   real,               parameter :: board_padding_rl       = 0.03
 
@@ -32,8 +37,19 @@ program main
   integer,parameter                               :: CELL_KNOTT = 2
 
   integer :: current_player
+  type(TLine) :: final_line
+  integer :: state
 
-  board(:,:) = 0
+  integer, parameter :: STATE_GAME = 0
+  integer, parameter :: STATE_WON  = 1
+
+  state = STATE_GAME
+  board(:,:) = reshape((/ &
+      0, 0, 0, &
+      0, 0, 0, &
+      0, 0, 0  &
+  /), (/board_size_cl, board_size_cl/))
+
   current_player = CELL_CROSS
 
   call set_config_flags(FLAG_WINDOW_RESIZABLE)
@@ -58,34 +74,132 @@ program main
 
      call begin_drawing()
      call clear_background(background_color)
-
-     do x_cl=1,board_size_cl
-        do y_cl=1,board_size_cl
-           x_px = board_x_px + (x_cl - 1)*cell_size_px + (cell_size_px*board_padding_rl)/2
-           y_px = board_y_px + (y_cl - 1)*cell_size_px + (cell_size_px*board_padding_rl)/2
-           w_px = cell_size_px - (cell_size_px*board_padding_rl)
-           h_px = cell_size_px - (cell_size_px*board_padding_rl)
-           select case (board(x_cl, y_cl))
-              case (CELL_EMPTY)
-                 if (empty_cell(x_px, y_px, w_px, h_px)) then
-                    board(x_cl, y_cl) = current_player
-                    current_player = 3 - current_player
-                 end if
-              case (CELL_CROSS)
-                 call cross_cell(x_px, y_px, w_px, h_px)
-              case (CELL_KNOTT)
-                 call knot_cell(x_px, y_px, w_px, h_px)
-           end select
-        end do
-     end do
-
+     select case (state)
+     case (STATE_GAME)
+        call render_game_state()
+     case (STATE_WON)
+        call render_won_state()
+     end select
      call end_drawing()
   end do
 
 contains
-  logical function empty_cell(x_px,y_px,w_px,h_px)
+  subroutine render_won_state()
+    implicit none
+    type(Vector2) :: startPos, endPos
+    real :: thick
+    do x_cl=1,board_size_cl
+       do y_cl=1,board_size_cl
+          x_px = board_x_px + (x_cl - 1)*cell_size_px + (cell_size_px*board_padding_rl)/2
+          y_px = board_y_px + (y_cl - 1)*cell_size_px + (cell_size_px*board_padding_rl)/2
+          w_px = cell_size_px - (cell_size_px*board_padding_rl)
+          h_px = cell_size_px - (cell_size_px*board_padding_rl)
+          select case (board(x_cl, y_cl))
+          case (CELL_EMPTY)
+             call empty_cell_disabled(x_px, y_px, w_px, h_px)
+          case (CELL_CROSS)
+             call cross_cell(x_px, y_px, w_px, h_px)
+          case (CELL_KNOTT)
+             call knot_cell(x_px, y_px, w_px, h_px)
+          end select
+       end do
+    end do
+
+    thick = cell_size_px*0.2
+
+    startPos%x = board_x_px + (final_line%x-1)*cell_size_px + cell_size_px/2 + (-final_line%dx)*(cell_size_px/3)
+    startPos%y = board_y_px + (final_line%y-1)*cell_size_px + cell_size_px/2 + (-final_line%dy)*(cell_size_px/3)
+    endPos%x   = board_x_px + ((final_line%x-1) + 2*final_line%dx)*cell_size_px + cell_size_px/2 + final_line%dx*(cell_size_px/3)
+    endPos%y   = board_y_px + ((final_line%y-1) + 2*final_line%dy)*cell_size_px + cell_size_px/2 + final_line%dy*(cell_size_px/3)
+    call draw_line_ex(startPos, endPos, thick, strikethrough_color)
+  end subroutine render_won_state
+
+  subroutine render_game_state()
+    implicit none
+    do x_cl=1,board_size_cl
+       do y_cl=1,board_size_cl
+          x_px = board_x_px + (x_cl - 1)*cell_size_px + (cell_size_px*board_padding_rl)/2
+          y_px = board_y_px + (y_cl - 1)*cell_size_px + (cell_size_px*board_padding_rl)/2
+          w_px = cell_size_px - (cell_size_px*board_padding_rl)
+          h_px = cell_size_px - (cell_size_px*board_padding_rl)
+          select case (board(x_cl, y_cl))
+          case (CELL_EMPTY)
+             if (empty_cell_clickable(x_px, y_px, w_px, h_px)) then
+                board(x_cl, y_cl) = current_player
+                current_player = 3 - current_player
+                if (player_won(CELL_CROSS, final_line)) then
+                   state = STATE_WON
+                   return
+                end if
+                if (player_won(CELL_KNOTT, final_line)) then
+                   state = STATE_WON
+                   return
+                end if
+             end if
+          case (CELL_CROSS)
+             call cross_cell(x_px, y_px, w_px, h_px)
+          case (CELL_KNOTT)
+             call knot_cell(x_px, y_px, w_px, h_px)
+          end select
+       end do
+    end do
+  end subroutine render_game_state
+
+  function check_line(player, line) result(ok)
+    implicit none
+    integer :: player
+    logical :: ok
+    integer :: x, y
+    type(TLine) :: line
+
+    x = line%x
+    y = line%y
+    ok = .true.
+    do while (1 <= x .AND. x <= board_size_cl .AND. &
+         1 <= y .AND. y <= board_size_cl)
+       ok = board(x, y) == player
+       if (.not. ok) return
+
+       x = x + line%dx
+       y = y + line%dy
+    end do
+  end function check_line
+
+  function player_won(player, line) result(ok)
+    implicit none
+    integer :: player, i
+    logical :: ok
+    type(TLine),intent(out) :: line
+
+    ok = .false.
+    do i=1,board_size_cl
+       line = tline(i, 1, 0, 1)
+       ok = check_line(player, line)
+       if (ok) return
+
+       line = tline(1, i, 1, 0)
+       ok = check_line(player, line)
+       if (ok) return
+    end do
+
+    line = tline(1, 1, 1, 1)
+    ok = check_line(player, line)
+    if (ok) return
+
+    line = tline(board_size_cl, 1, -1, 1)
+    ok = check_line(player, line)
+  end function player_won
+
+  subroutine empty_cell_disabled(x_px,y_px,w_px,h_px)
+    implicit none
+    real :: x_px, y_px, w_px, h_px
+    call draw_rectangle(int(x_px), int(y_px), int(w_px), int(h_px), cell_regular_color)
+  end subroutine empty_cell_disabled
+
+  function empty_cell_clickable(x_px,y_px,w_px,h_px) result(clicked)
     implicit none
     real :: x_px, y_px, w_px, h_px, mouse_x_px, mouse_y_px
+    logical :: clicked
 
     mouse_x_px = get_mouse_x()
     mouse_y_px = get_mouse_y()
@@ -93,12 +207,12 @@ contains
     if (x_px <= mouse_x_px .AND. mouse_x_px < x_px + w_px .AND. &
          y_px <= mouse_y_px .AND. mouse_y_px < y_px + h_px) then
        call draw_rectangle(int(x_px), int(y_px), int(w_px), int(h_px), cell_highlighted_color)
-       empty_cell = is_mouse_button_pressed(MOUSE_BUTTON_LEFT)
+       clicked = is_mouse_button_pressed(MOUSE_BUTTON_LEFT)
     else
        call draw_rectangle(int(x_px), int(y_px), int(w_px), int(h_px), cell_regular_color)
-       empty_cell = .FALSE.
+       clicked = .FALSE.
     end if
-  end function empty_cell
+  end function empty_cell_clickable
 
   subroutine cross_cell(x_px,y_px,w_px,h_px)
     use iso_c_binding, only: c_float
