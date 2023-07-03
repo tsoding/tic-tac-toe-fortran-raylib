@@ -26,7 +26,7 @@ program main
   real,               parameter :: board_padding_rl       = 0.03
 
   real    :: dt
-  integer :: x_cl, y_cl
+  integer :: x_cl, y_cl, next_x_cl, next_y_cl
   real    :: x_px, y_px, w_px, h_px
   integer :: window_width_px, window_height_px
   real    :: board_x_px, board_y_px, board_size_px, cell_size_px
@@ -42,6 +42,7 @@ program main
 
   integer, parameter :: STATE_GAME = 0
   integer, parameter :: STATE_WON  = 1
+  integer, parameter :: STATE_TIE  = 2
 
   state = STATE_GAME
   board(:,:) = reshape((/ &
@@ -79,11 +80,119 @@ program main
         call render_game_state()
      case (STATE_WON)
         call render_won_state()
+     case (STATE_TIE)
+        call render_tie_state()
      end select
      call end_drawing()
   end do
 
 contains
+  function full() result(ok)
+    implicit none
+    logical :: ok
+    integer :: x, y
+    ok = .true.
+    do x=1,board_size_cl
+       do y=1,board_size_cl
+          ok = board(x, y) /= 0
+          if (.not. ok) return
+       end do
+    end do
+  end function full
+
+  recursive function who_wins(player, x, y) result(who)
+    implicit none
+    integer, intent(in) :: player, x, y
+    type(TLine) :: ignore
+    integer :: who, opponent, next
+    integer :: ix, iy
+
+    board(x, y) = player
+
+    if (player_won(CELL_CROSS, ignore)) then
+       who = CELL_CROSS
+       board(x, y) = 0
+       return
+    end if
+
+    if (player_won(CELL_KNOTT, ignore)) then
+       who = CELL_KNOTT
+       board(x, y) = 0
+       return
+    end if
+
+    if (full()) then
+       who = 0
+       board(x, y) = 0
+       return
+    end if
+
+    opponent = 3 - player
+
+    who = player
+    do ix=1,board_size_cl
+       do iy=1,board_size_cl
+          if (board(ix, iy) == CELL_EMPTY) then
+             next = who_wins(opponent, ix, iy)
+             if (next == 0) who = 0
+             if (next == opponent) then
+                who = opponent
+                board(x, y) = 0
+                return
+             end if
+          end if
+       end do
+    end do
+    board(x, y) = 0
+  end function who_wins
+
+  function ai_next_move(player, ox, oy) result(giveup)
+    implicit none
+    integer, intent(in)  :: player
+    integer, intent(out) :: ox, oy
+    logical :: giveup
+    integer :: x, y, next
+    giveup = .true.
+    do x=1,board_size_cl
+       do y=1,board_size_cl
+          if (board(x, y) == CELL_EMPTY) then
+             next = who_wins(player, x, y)
+             if (next == 0) then
+                giveup = .false.
+                ox = x
+                oy = y
+             end if
+             if (next == player) then
+                giveup = .false.
+                ox = x
+                oy = y
+                return
+             end if
+          end if
+       end do
+    end do
+  end function ai_next_move
+
+  subroutine render_tie_state()
+    implicit none
+    do x_cl=1,board_size_cl
+       do y_cl=1,board_size_cl
+          x_px = board_x_px + (x_cl - 1)*cell_size_px + (cell_size_px*board_padding_rl)/2
+          y_px = board_y_px + (y_cl - 1)*cell_size_px + (cell_size_px*board_padding_rl)/2
+          w_px = cell_size_px - (cell_size_px*board_padding_rl)
+          h_px = cell_size_px - (cell_size_px*board_padding_rl)
+          select case (board(x_cl, y_cl))
+          case (CELL_EMPTY)
+             call empty_cell_disabled(x_px, y_px, w_px, h_px)
+          case (CELL_CROSS)
+             call cross_cell(x_px, y_px, w_px, h_px)
+          case (CELL_KNOTT)
+             call knot_cell(x_px, y_px, w_px, h_px)
+          end select
+       end do
+    end do
+  end subroutine render_tie_state
+
   subroutine render_won_state()
     implicit none
     type(Vector2) :: startPos, endPos
@@ -116,33 +225,67 @@ contains
 
   subroutine render_game_state()
     implicit none
-    do x_cl=1,board_size_cl
-       do y_cl=1,board_size_cl
-          x_px = board_x_px + (x_cl - 1)*cell_size_px + (cell_size_px*board_padding_rl)/2
-          y_px = board_y_px + (y_cl - 1)*cell_size_px + (cell_size_px*board_padding_rl)/2
-          w_px = cell_size_px - (cell_size_px*board_padding_rl)
-          h_px = cell_size_px - (cell_size_px*board_padding_rl)
-          select case (board(x_cl, y_cl))
-          case (CELL_EMPTY)
-             if (empty_cell_clickable(x_px, y_px, w_px, h_px)) then
-                board(x_cl, y_cl) = current_player
-                current_player = 3 - current_player
-                if (player_won(CELL_CROSS, final_line)) then
-                   state = STATE_WON
-                   return
+    select case(current_player)
+    case (CELL_CROSS)
+       do x_cl=1,board_size_cl
+          do y_cl=1,board_size_cl
+             x_px = board_x_px + (x_cl - 1)*cell_size_px + (cell_size_px*board_padding_rl)/2
+             y_px = board_y_px + (y_cl - 1)*cell_size_px + (cell_size_px*board_padding_rl)/2
+             w_px = cell_size_px - (cell_size_px*board_padding_rl)
+             h_px = cell_size_px - (cell_size_px*board_padding_rl)
+             select case (board(x_cl, y_cl))
+             case (CELL_EMPTY)
+                if (empty_cell_clickable(x_px, y_px, w_px, h_px)) then
+                   board(x_cl, y_cl) = current_player
+                   if (player_won(CELL_CROSS, final_line)) then
+                      state = STATE_WON
+                      return
+                   end if
+                   if (player_won(CELL_KNOTT, final_line)) then
+                      state = STATE_WON
+                      return
+                   end if
+                   current_player = 3 - current_player
                 end if
-                if (player_won(CELL_KNOTT, final_line)) then
-                   state = STATE_WON
-                   return
-                end if
-             end if
-          case (CELL_CROSS)
-             call cross_cell(x_px, y_px, w_px, h_px)
-          case (CELL_KNOTT)
-             call knot_cell(x_px, y_px, w_px, h_px)
-          end select
+             case (CELL_CROSS)
+                call cross_cell(x_px, y_px, w_px, h_px)
+             case (CELL_KNOTT)
+                call knot_cell(x_px, y_px, w_px, h_px)
+             end select
+          end do
        end do
-    end do
+    case (CELL_KNOTT)
+       do x_cl=1,board_size_cl
+          do y_cl=1,board_size_cl
+             x_px = board_x_px + (x_cl - 1)*cell_size_px + (cell_size_px*board_padding_rl)/2
+             y_px = board_y_px + (y_cl - 1)*cell_size_px + (cell_size_px*board_padding_rl)/2
+             w_px = cell_size_px - (cell_size_px*board_padding_rl)
+             h_px = cell_size_px - (cell_size_px*board_padding_rl)
+             select case (board(x_cl, y_cl))
+             case (CELL_EMPTY)
+                call empty_cell_disabled(x_px, y_px, w_px, h_px)
+             case (CELL_CROSS)
+                call cross_cell(x_px, y_px, w_px, h_px)
+             case (CELL_KNOTT)
+                call knot_cell(x_px, y_px, w_px, h_px)
+             end select
+          end do
+       end do
+       if (.not. ai_next_move(current_player, next_x_cl, next_y_cl)) then
+          board(next_x_cl, next_y_cl) = current_player
+          if (player_won(CELL_CROSS, final_line)) then
+             state = STATE_WON
+             return
+          end if
+          if (player_won(CELL_KNOTT, final_line)) then
+             state = STATE_WON
+             return
+          end if
+          current_player = 3 - current_player
+       else
+          state = STATE_TIE
+       end if
+    end select
   end subroutine render_game_state
 
   function check_line(player, line) result(ok)
