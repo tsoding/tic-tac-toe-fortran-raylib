@@ -10,5 +10,5 @@ Dependancies:
 
 ```console
 $ ./build.sh
-$ ./main
+$ ./build/ttt
 ```

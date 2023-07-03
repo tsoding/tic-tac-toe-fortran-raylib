@@ -1,3 +1,28 @@
+! TODO: AI does not take into account shorter paths to victory
+! 
+! Let `x` be the human, and `o` be the AI. Consider the following game:
+!
+! ```
+! x..
+! .o.
+! ...
+!
+! x..
+! xo.
+! o..
+!
+! xo.
+! xox
+! o..
+! ```
+!
+! A better move for `o` would've been
+!
+! ```
+! x.o
+! xox
+! o..
+! ```
 module ai
   use game
   implicit none
