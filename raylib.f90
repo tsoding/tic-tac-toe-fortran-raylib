@@ -90,7 +90,6 @@ module raylib
        integer(c_int32_t),value :: color
      end subroutine draw_line_ex
 
-     ! DrawRing(Vector2 center, float innerRadius, float outerRadius, float startAngle, float endAngle, int segments, Color color)
      subroutine draw_ring(center,innerRadius,outerRadius,startAngle,endAngle,segments,color) bind(C, name="DrawRing")
        use iso_c_binding, only: c_float, c_int, c_int32_t
        type, bind(C) :: Vector2

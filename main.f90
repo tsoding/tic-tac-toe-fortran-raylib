@@ -5,6 +5,10 @@ program main
   use raylib
   implicit none
 
+  ! Measure units:
+  ! - *_px - pixels
+  ! - *_cl - cells
+  ! - *_rl - relative (fraction of width, height, cell size, etc)
   integer(c_int),     parameter :: screen_width_px        = 800
   integer(c_int),     parameter :: screen_height_px       = 600
   integer(c_int),     parameter :: fps                    = 60
@@ -14,7 +18,7 @@ program main
   integer(c_int32_t), parameter :: knot_color             = color(z'FF3030FF')
   integer(c_int32_t), parameter :: background_color       = color(z'FF181818')
   integer(c_int),     parameter :: board_size_cl          = 3
-  real,               parameter :: board_padding_px       = 10 !TODO: board_padding_px must be resolution dependant
+  real,               parameter :: board_padding_rl       = 0.03
 
   real    :: dt
   integer :: x_cl, y_cl
@@ -57,10 +61,10 @@ program main
 
      do x_cl=1,board_size_cl
         do y_cl=1,board_size_cl
-           x_px = board_x_px + (x_cl - 1)*cell_size_px + board_padding_px/2
-           y_px = board_y_px + (y_cl - 1)*cell_size_px + board_padding_px/2
-           w_px = cell_size_px - board_padding_px
-           h_px = cell_size_px - board_padding_px
+           x_px = board_x_px + (x_cl - 1)*cell_size_px + (cell_size_px*board_padding_rl)/2
+           y_px = board_y_px + (y_cl - 1)*cell_size_px + (cell_size_px*board_padding_rl)/2
+           w_px = cell_size_px - (cell_size_px*board_padding_rl)
+           h_px = cell_size_px - (cell_size_px*board_padding_rl)
            select case (board(x_cl, y_cl))
               case (CELL_EMPTY)
                  if (empty_cell(x_px, y_px, w_px, h_px)) then
