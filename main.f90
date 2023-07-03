@@ -3,11 +3,8 @@
 program main
   use iso_c_binding, only: c_int, c_int32_t, C_NULL_CHAR
   use raylib
+  use game
   implicit none
-
-  type :: TLine
-     integer :: x, y, dx, dy
-  end type TLine
 
   ! Measure units:
   ! - *_px - pixels
@@ -22,7 +19,6 @@ program main
   integer(c_int32_t), parameter :: knot_color             = color(z'FF3030FF')
   integer(c_int32_t), parameter :: background_color       = color(z'FF181818')
   integer(c_int32_t), parameter :: strikethrough_color    = color(z'FFFFFFFF')
-  integer(c_int),     parameter :: board_size_cl          = 3
   real,               parameter :: board_padding_rl       = 0.03
 
   real    :: dt
@@ -32,9 +28,6 @@ program main
   real    :: board_x_px, board_y_px, board_size_px, cell_size_px
 
   integer,dimension(board_size_cl, board_size_cl) :: board
-  integer,parameter                               :: CELL_EMPTY = 0
-  integer,parameter                               :: CELL_CROSS = 1
-  integer,parameter                               :: CELL_KNOTT = 2
 
   integer :: current_player
   type(TLine) :: final_line
@@ -87,19 +80,6 @@ program main
   end do
 
 contains
-  function full() result(ok)
-    implicit none
-    logical :: ok
-    integer :: x, y
-    ok = .true.
-    do x=1,board_size_cl
-       do y=1,board_size_cl
-          ok = board(x, y) /= 0
-          if (.not. ok) return
-       end do
-    end do
-  end function full
-
   recursive function who_wins(player, x, y) result(who)
     implicit none
     integer, intent(in) :: player, x, y
@@ -109,19 +89,19 @@ contains
 
     board(x, y) = player
 
-    if (player_won(CELL_CROSS, ignore)) then
+    if (player_won(board, CELL_CROSS, ignore)) then
        who = CELL_CROSS
        board(x, y) = 0
        return
     end if
 
-    if (player_won(CELL_KNOTT, ignore)) then
+    if (player_won(board, CELL_KNOTT, ignore)) then
        who = CELL_KNOTT
        board(x, y) = 0
        return
     end if
 
-    if (full()) then
+    if (board_full(board)) then
        who = 0
        board(x, y) = 0
        return
@@ -237,11 +217,11 @@ contains
              case (CELL_EMPTY)
                 if (empty_cell_clickable(x_px, y_px, w_px, h_px)) then
                    board(x_cl, y_cl) = current_player
-                   if (player_won(CELL_CROSS, final_line)) then
+                   if (player_won(board, CELL_CROSS, final_line)) then
                       state = STATE_WON
                       return
                    end if
-                   if (player_won(CELL_KNOTT, final_line)) then
+                   if (player_won(board, CELL_KNOTT, final_line)) then
                       state = STATE_WON
                       return
                    end if
@@ -273,11 +253,11 @@ contains
        end do
        if (.not. ai_next_move(current_player, next_x_cl, next_y_cl)) then
           board(next_x_cl, next_y_cl) = current_player
-          if (player_won(CELL_CROSS, final_line)) then
+          if (player_won(board, CELL_CROSS, final_line)) then
              state = STATE_WON
              return
           end if
-          if (player_won(CELL_KNOTT, final_line)) then
+          if (player_won(board, CELL_KNOTT, final_line)) then
              state = STATE_WON
              return
           end if
@@ -287,51 +267,6 @@ contains
        end if
     end select
   end subroutine render_game_state
-
-  function check_line(player, line) result(ok)
-    implicit none
-    integer :: player
-    logical :: ok
-    integer :: x, y
-    type(TLine) :: line
-
-    x = line%x
-    y = line%y
-    ok = .true.
-    do while (1 <= x .AND. x <= board_size_cl .AND. &
-         1 <= y .AND. y <= board_size_cl)
-       ok = board(x, y) == player
-       if (.not. ok) return
-
-       x = x + line%dx
-       y = y + line%dy
-    end do
-  end function check_line
-
-  function player_won(player, line) result(ok)
-    implicit none
-    integer :: player, i
-    logical :: ok
-    type(TLine),intent(out) :: line
-
-    ok = .false.
-    do i=1,board_size_cl
-       line = tline(i, 1, 0, 1)
-       ok = check_line(player, line)
-       if (ok) return
-
-       line = tline(1, i, 1, 0)
-       ok = check_line(player, line)
-       if (ok) return
-    end do
-
-    line = tline(1, 1, 1, 1)
-    ok = check_line(player, line)
-    if (ok) return
-
-    line = tline(board_size_cl, 1, -1, 1)
-    ok = check_line(player, line)
-  end function player_won
 
   subroutine empty_cell_disabled(x_px,y_px,w_px,h_px)
     implicit none
