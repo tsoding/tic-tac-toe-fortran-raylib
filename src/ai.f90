@@ -23,6 +23,11 @@
 ! xox
 ! o..
 ! ```
+
+! TODO: AI is too slow for border sizes > 3
+! Speed up ideas to try:
+! - memoization
+! - limit the depth of recursion
 module ai
   use game
   implicit none
