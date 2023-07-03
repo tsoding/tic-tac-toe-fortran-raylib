@@ -3,33 +3,21 @@
 module raylib
   use iso_c_binding, only: c_int32_t, c_char, c_int, c_bool, c_float
   implicit none
+  type, bind(C) :: Vector2
+     real(c_float) :: x, y
+  end type Vector2
 
-  integer(c_int32_t) :: BLACK
-  parameter(BLACK = 0)
-  integer(c_int32_t) :: RED
-  parameter(RED = color(z'FF0000FF'))
-  integer(c_int32_t) :: GREEN
-  parameter(GREEN = color(z'FF00FF00'))
-  integer(c_int32_t) :: BLUE
-  parameter(BLUE = color(z'FFFF0000'))
-
+  ! TODO: use the Raylib colors
+  integer(c_int32_t), parameter :: BLANK = 0
+  integer(c_int32_t), parameter :: BLACK = color(z'FF000000')
+  integer(c_int32_t), parameter :: RED   = color(z'FF0000FF')
+  integer(c_int32_t), parameter :: GREEN = color(z'FF00FF00')
+  integer(c_int32_t), parameter :: BLUE  = color(z'FFFF0000')
   integer(c_int32_t), parameter :: MOUSE_BUTTON_LEFT = 0
 
-  integer(c_int32_t) :: FLAG_WINDOW_RESIZABLE
-  parameter(FLAG_WINDOW_RESIZABLE = hex32(z'00000004'))
+  integer(c_int32_t), parameter :: FLAG_WINDOW_RESIZABLE = hex32(z'00000004')
 
   interface
-
-     subroutine print_c(string) bind(C, name="print_C")
-       use iso_c_binding, only: c_char
-       character(kind=c_char) :: string(*)
-     end subroutine print_c
-
-     subroutine print_b(string) bind(C, name="print_B")
-       use iso_c_binding, only: c_char
-       character(kind=c_char) :: string(*)
-     end subroutine print_b
-
      subroutine init_window(width,height,title) bind(C, name="InitWindow")
        use iso_c_binding, only: c_char, c_int
        integer(c_int),value :: width

@@ -1,55 +1,31 @@
 #include "macros.h"
 
-module config
-  use iso_c_binding, only: c_int, c_int32_t
-
-  integer(c_int32_t),parameter :: cell_color_regular = color(z'FF252525')
-  integer(c_int32_t),parameter :: cell_color_highlighted = color(z'FF353535')
-  integer(c_int32_t),parameter :: cross_color = color(z'FFFF3030')
-  integer(c_int32_t),parameter :: knot_color = color(z'FF3030FF')
-end module config
-
 program main
   use iso_c_binding, only: c_int, c_int32_t, C_NULL_CHAR
   use raylib
-  use config
   implicit none
 
-  ! Screen Parameters
-  integer(c_int) :: screen_width_px
-  integer(c_int) :: screen_height_px
-  integer(c_int) :: fps
-  parameter (screen_width_px = 800, screen_height_px = 600, fps = 60)
+  integer(c_int),     parameter :: screen_width_px        = 800
+  integer(c_int),     parameter :: screen_height_px       = 600
+  integer(c_int),     parameter :: fps                    = 60
+  integer(c_int32_t), parameter :: cell_color_regular     = color(z'FF252525')
+  integer(c_int32_t), parameter :: cell_color_highlighted = color(z'FF353535')
+  integer(c_int32_t), parameter :: cross_color            = color(z'FFFF3030')
+  integer(c_int32_t), parameter :: knot_color             = color(z'FF3030FF')
+  integer(c_int32_t), parameter :: background_color       = color(z'FF181818')
+  integer(c_int),     parameter :: board_size_cl          = 3
+  real,               parameter :: board_padding_px       = 10 !TODO: board_padding_px must be resolution dependant
 
-  ! Board Parameters
-  integer(c_int) :: board_size_cl
-  real :: board_padding_px
-  parameter (board_size_cl = 3, board_padding_px = 10)
-
-  integer(c_int32_t) :: background_color
-  parameter (background_color = color(z'FF181818'))
-
-  real :: dt
-  integer :: x_cl
-  integer :: y_cl
-  real    :: x_px
-  real    :: y_px
-  real    :: w_px
-  real    :: h_px
-  integer :: window_width_px
-  integer :: window_height_px
-  real :: board_x_px
-  real :: board_y_px
-  real :: board_size_px
-  real :: cell_size_px
-  integer :: mouse_x_px
-  integer :: mouse_y_px
+  real    :: dt
+  integer :: x_cl, y_cl
+  real    :: x_px, y_px, w_px, h_px
+  integer :: window_width_px, window_height_px
+  real    :: board_x_px, board_y_px, board_size_px, cell_size_px
 
   integer,dimension(board_size_cl, board_size_cl) :: board
-
-  integer,parameter :: CELL_EMPTY = 0
-  integer,parameter :: CELL_CROSS = 1
-  integer,parameter :: CELL_KNOTT = 2
+  integer,parameter                               :: CELL_EMPTY = 0
+  integer,parameter                               :: CELL_CROSS = 1
+  integer,parameter                               :: CELL_KNOTT = 2
 
   integer :: current_player
 
@@ -63,8 +39,6 @@ program main
      dt               = get_frame_time()
      window_width_px  = get_render_width()
      window_height_px = get_render_height()
-     mouse_x_px       = get_mouse_x()
-     mouse_y_px       = get_mouse_y()
 
      if (window_width_px > window_height_px) then
         board_size_px = window_height_px
@@ -100,13 +74,12 @@ program main
            end select
         end do
      end do
-     
+
      call end_drawing()
   end do
+
 contains
   logical function empty_cell(x_px,y_px,w_px,h_px)
-    use raylib
-    use config
     implicit none
     real :: x_px, y_px, w_px, h_px, mouse_x_px, mouse_y_px
 
@@ -122,58 +95,50 @@ contains
        empty_cell = .FALSE.
     end if
   end function empty_cell
-end program main
 
+  subroutine cross_cell(x_px,y_px,w_px,h_px)
+    use iso_c_binding, only: c_float
+    implicit none
+    real :: x_px, y_px, w_px, h_px
+    type(Vector2) :: startPos
+    type(Vector2) :: endPos
+    real :: thick, pad
 
-subroutine cross_cell(x_px,y_px,w_px,h_px)
-  use iso_c_binding, only: c_float
-  use raylib
-  use config
-  implicit none
-  type, bind(C) :: Vector2
-     real(c_float) :: x, y
-  end type Vector2
-  real :: x_px, y_px, w_px, h_px
-  type(Vector2) :: startPos
-  type(Vector2) :: endPos
-  real :: thick, pad
+    call draw_rectangle(int(x_px), int(y_px), int(w_px), int(h_px), cell_color_regular)
 
-  call draw_rectangle(int(x_px), int(y_px), int(w_px), int(h_px), cell_color_regular)
+    thick = w_px*0.2
+    pad = w_px*0.2
 
-  thick = w_px*0.2
-  pad = w_px*0.2
+    startPos%x = x_px + pad
+    startPos%y = y_px + pad
+    endPos%x   = x_px + w_px - pad
+    endPos%y   = y_px + h_px - pad
+    call draw_line_ex(startPos, endPos, thick, cross_color)
 
-  startPos%x = x_px + pad
-  startPos%y = y_px + pad
-  endPos%x   = x_px + w_px - pad
-  endPos%y   = y_px + h_px - pad
-  call draw_line_ex(startPos, endPos, thick, cross_color)
+    startPos%x = x_px + w_px - pad
+    startPos%y = y_px + pad
+    endPos%x   = x_px + pad
+    endPos%y   = y_px + h_px - pad
+    call draw_line_ex(startPos, endPos, thick, cross_color)
+  end subroutine cross_cell
 
-  startPos%x = x_px + w_px - pad
-  startPos%y = y_px + pad
-  endPos%x   = x_px + pad 
-  endPos%y   = y_px + h_px - pad
-  call draw_line_ex(startPos, endPos, thick, cross_color)
-end subroutine cross_cell
+  subroutine knot_cell(x_px,y_px,w_px,h_px)
+    use iso_c_binding, only: c_float
+    implicit none
+    type, bind(C) :: Vector2
+       real(c_float) :: x, y
+    end type Vector2
+    real :: x_px, y_px, w_px, h_px
+    type(Vector2) :: center
+    real :: thick, pad
 
-subroutine knot_cell(x_px,y_px,w_px,h_px)
-  use iso_c_binding, only: c_float
-  use raylib
-  use config
-  implicit none
-  type, bind(C) :: Vector2
-     real(c_float) :: x, y
-  end type Vector2
-  real :: x_px, y_px, w_px, h_px
-  type(Vector2) :: center
-  real :: thick, pad
+    call draw_rectangle(int(x_px), int(y_px), int(w_px), int(h_px), cell_color_regular)
 
-  call draw_rectangle(int(x_px), int(y_px), int(w_px), int(h_px), cell_color_regular)
+    thick = w_px*0.2
+    pad = w_px*0.2
 
-  thick = w_px*0.2
-  pad = w_px*0.2
-
-  center%x = x_px + w_px/2
-  center%y = y_px + h_px/2
-  call draw_ring(center, (w_px - pad)/2 - thick, (w_px - pad)/2, 0.0, 360.0, 100, knot_color)
-end subroutine knot_cell
+    center%x = x_px + w_px/2
+    center%y = y_px + h_px/2
+    call draw_ring(center, (w_px - pad)/2 - thick, (w_px - pad)/2, 0.0, 360.0, 100, knot_color)
+  end subroutine knot_cell
+end program
