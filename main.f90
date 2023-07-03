@@ -125,9 +125,6 @@ contains
   subroutine knot_cell(x_px,y_px,w_px,h_px)
     use iso_c_binding, only: c_float
     implicit none
-    type, bind(C) :: Vector2
-       real(c_float) :: x, y
-    end type Vector2
     real :: x_px, y_px, w_px, h_px
     type(Vector2) :: center
     real :: thick, pad
