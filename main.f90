@@ -12,8 +12,8 @@ program main
   integer(c_int),     parameter :: screen_width_px        = 800
   integer(c_int),     parameter :: screen_height_px       = 600
   integer(c_int),     parameter :: fps                    = 60
-  integer(c_int32_t), parameter :: cell_color_regular     = color(z'FF252525')
-  integer(c_int32_t), parameter :: cell_color_highlighted = color(z'FF353535')
+  integer(c_int32_t), parameter :: cell_regular_color     = color(z'FF252525')
+  integer(c_int32_t), parameter :: cell_highlighted_color = color(z'FF353535')
   integer(c_int32_t), parameter :: cross_color            = color(z'FFFF3030')
   integer(c_int32_t), parameter :: knot_color             = color(z'FF3030FF')
   integer(c_int32_t), parameter :: background_color       = color(z'FF181818')
@@ -92,10 +92,10 @@ contains
 
     if (x_px <= mouse_x_px .AND. mouse_x_px < x_px + w_px .AND. &
          y_px <= mouse_y_px .AND. mouse_y_px < y_px + h_px) then
-       call draw_rectangle(int(x_px), int(y_px), int(w_px), int(h_px), cell_color_highlighted)
+       call draw_rectangle(int(x_px), int(y_px), int(w_px), int(h_px), cell_highlighted_color)
        empty_cell = is_mouse_button_pressed(MOUSE_BUTTON_LEFT)
     else
-       call draw_rectangle(int(x_px), int(y_px), int(w_px), int(h_px), cell_color_regular)
+       call draw_rectangle(int(x_px), int(y_px), int(w_px), int(h_px), cell_regular_color)
        empty_cell = .FALSE.
     end if
   end function empty_cell
@@ -108,7 +108,7 @@ contains
     type(Vector2) :: endPos
     real :: thick, pad
 
-    call draw_rectangle(int(x_px), int(y_px), int(w_px), int(h_px), cell_color_regular)
+    call draw_rectangle(int(x_px), int(y_px), int(w_px), int(h_px), cell_regular_color)
 
     thick = w_px*0.2
     pad = w_px*0.2
@@ -133,7 +133,7 @@ contains
     type(Vector2) :: center
     real :: thick, pad
 
-    call draw_rectangle(int(x_px), int(y_px), int(w_px), int(h_px), cell_color_regular)
+    call draw_rectangle(int(x_px), int(y_px), int(w_px), int(h_px), cell_regular_color)
 
     thick = w_px*0.2
     pad = w_px*0.2
