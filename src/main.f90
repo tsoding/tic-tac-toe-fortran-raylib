@@ -16,7 +16,7 @@ program main
   integer(c_int),     parameter :: fps                    = 60
   integer(c_int32_t), parameter :: cell_regular_color     = color(z'FF252525')
   integer(c_int32_t), parameter :: cell_highlighted_color = color(z'FF353535')
-  integer(c_int32_t), parameter :: cross_color            = color(z'FFFF3030')
+  integer(c_int32_t), parameter :: cross_color            = color(z'FFFF6030')
   integer(c_int32_t), parameter :: knot_color             = color(z'FF3030FF')
   integer(c_int32_t), parameter :: background_color       = color(z'FF181818')
   integer(c_int32_t), parameter :: strikethrough_color    = color(z'FFFFFFFF')
