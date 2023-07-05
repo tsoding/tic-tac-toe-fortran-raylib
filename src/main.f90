@@ -1,7 +1,7 @@
 #include "macros.h"
 
 program main
-  use iso_c_binding, only: c_int, c_int32_t, C_NULL_CHAR
+  use iso_c_binding, only: c_int, c_int32_t, C_NULL_CHAR, C_NULL_PTR
   use raylib
   use game
   use ai
@@ -21,10 +21,15 @@ program main
   integer(c_int32_t), parameter :: background_color       = color(z'FF181818')
   integer(c_int32_t), parameter :: strikethrough_color    = color(z'FFFFFFFF')
   real,               parameter :: board_padding_rl       = 0.03
+  integer, parameter :: hello_chat_font_size = 48
+  integer(c_int32_t), parameter :: button_color_regular           = color(z'FFFF6030')
+  integer(c_int32_t), parameter :: button_color_hovered           = color(z'FFFF3030')
+  real, parameter :: button_width = 200
+  real, parameter :: button_height = 100
 
   real    :: dt
   integer :: x_cl, y_cl, next_x_cl, next_y_cl
-  real    :: x_px, y_px, w_px, h_px
+  real    :: x_px, y_px, s_px
   integer :: window_width_px, window_height_px
   real    :: board_x_px, board_y_px, board_size_px, cell_size_px
 
@@ -33,6 +38,7 @@ program main
   integer :: current_player
   type(TLine) :: final_line
   integer :: state
+  type(Font) :: game_font
 
   integer, parameter :: STATE_GAME = 0
   integer, parameter :: STATE_WON  = 1
@@ -50,6 +56,9 @@ program main
   call set_config_flags(FLAG_WINDOW_RESIZABLE)
   call init_window(screen_width_px, screen_height_px, "Fortran GOTY"//C_NULL_CHAR)
   call set_target_fps(fps)
+
+  game_font = load_font_ex("./fonts/Alegreya-Regular.ttf"//C_NULL_CHAR, hello_chat_font_size, C_NULL_PTR, 0)
+
   do while (.not. window_should_close())
      dt               = get_frame_time()
      window_width_px  = get_render_width()
@@ -87,18 +96,25 @@ contains
        do y_cl=1,board_size_cl
           x_px = board_x_px + (x_cl - 1)*cell_size_px + (cell_size_px*board_padding_rl)/2
           y_px = board_y_px + (y_cl - 1)*cell_size_px + (cell_size_px*board_padding_rl)/2
-          w_px = cell_size_px - (cell_size_px*board_padding_rl)
-          h_px = cell_size_px - (cell_size_px*board_padding_rl)
+          s_px = cell_size_px - (cell_size_px*board_padding_rl)
           select case (board(x_cl, y_cl))
           case (CELL_EMPTY)
-             call empty_cell_disabled(x_px, y_px, w_px, h_px)
+             call empty_cell(x_px, y_px, s_px, cell_regular_color)
           case (CELL_CROSS)
-             call cross_cell(x_px, y_px, w_px, h_px)
+             call cross_cell(x_px, y_px, s_px)
           case (CELL_KNOTT)
-             call knot_cell(x_px, y_px, w_px, h_px)
+             call knot_cell(x_px, y_px, s_px)
           end select
        end do
     end do
+
+    if (restart_button(rectangle(board_x_px + board_size_px/2 - button_width/2, &
+         board_y_px + board_size_px/2 - button_height/2, &
+         button_width, button_height))) then
+       board(:,:) = 0
+       state = STATE_GAME
+       current_player = CELL_CROSS
+    end if
   end subroutine render_tie_state
 
   subroutine render_won_state()
@@ -109,15 +125,14 @@ contains
        do y_cl=1,board_size_cl
           x_px = board_x_px + (x_cl - 1)*cell_size_px + (cell_size_px*board_padding_rl)/2
           y_px = board_y_px + (y_cl - 1)*cell_size_px + (cell_size_px*board_padding_rl)/2
-          w_px = cell_size_px - (cell_size_px*board_padding_rl)
-          h_px = cell_size_px - (cell_size_px*board_padding_rl)
+          s_px = cell_size_px - (cell_size_px*board_padding_rl)
           select case (board(x_cl, y_cl))
           case (CELL_EMPTY)
-             call empty_cell_disabled(x_px, y_px, w_px, h_px)
+             call empty_cell(x_px, y_px, s_px, cell_regular_color)
           case (CELL_CROSS)
-             call cross_cell(x_px, y_px, w_px, h_px)
+             call cross_cell(x_px, y_px, s_px)
           case (CELL_KNOTT)
-             call knot_cell(x_px, y_px, w_px, h_px)
+             call knot_cell(x_px, y_px, s_px)
           end select
        end do
     end do
@@ -129,6 +144,14 @@ contains
     endPos%x   = board_x_px + ((final_line%x-1) + 2*final_line%dx)*cell_size_px + cell_size_px/2 + final_line%dx*(cell_size_px/3)
     endPos%y   = board_y_px + ((final_line%y-1) + 2*final_line%dy)*cell_size_px + cell_size_px/2 + final_line%dy*(cell_size_px/3)
     call draw_line_ex(startPos, endPos, thick, strikethrough_color)
+
+    if (restart_button(rectangle(board_x_px + board_size_px/2 - button_width/2, &
+         board_y_px + board_size_px/2 - button_height/2, &
+         button_width, button_height))) then
+       board(:,:) = 0
+       state = STATE_GAME
+       current_player = CELL_CROSS
+    end if
   end subroutine render_won_state
 
   subroutine render_game_state()
@@ -139,11 +162,10 @@ contains
           do y_cl=1,board_size_cl
              x_px = board_x_px + (x_cl - 1)*cell_size_px + (cell_size_px*board_padding_rl)/2
              y_px = board_y_px + (y_cl - 1)*cell_size_px + (cell_size_px*board_padding_rl)/2
-             w_px = cell_size_px - (cell_size_px*board_padding_rl)
-             h_px = cell_size_px - (cell_size_px*board_padding_rl)
+             s_px = cell_size_px - (cell_size_px*board_padding_rl)
              select case (board(x_cl, y_cl))
              case (CELL_EMPTY)
-                if (empty_cell_clickable(x_px, y_px, w_px, h_px)) then
+                if (empty_cell_clickable(x_px, y_px, s_px)) then
                    board(x_cl, y_cl) = current_player
                    if (player_won(board, CELL_CROSS, final_line)) then
                       state = STATE_WON
@@ -156,9 +178,9 @@ contains
                    current_player = 3 - current_player
                 end if
              case (CELL_CROSS)
-                call cross_cell(x_px, y_px, w_px, h_px)
+                call cross_cell(x_px, y_px, s_px)
              case (CELL_KNOTT)
-                call knot_cell(x_px, y_px, w_px, h_px)
+                call knot_cell(x_px, y_px, s_px)
              end select
           end do
        end do
@@ -167,15 +189,14 @@ contains
           do y_cl=1,board_size_cl
              x_px = board_x_px + (x_cl - 1)*cell_size_px + (cell_size_px*board_padding_rl)/2
              y_px = board_y_px + (y_cl - 1)*cell_size_px + (cell_size_px*board_padding_rl)/2
-             w_px = cell_size_px - (cell_size_px*board_padding_rl)
-             h_px = cell_size_px - (cell_size_px*board_padding_rl)
+             s_px = cell_size_px - (cell_size_px*board_padding_rl)
              select case (board(x_cl, y_cl))
              case (CELL_EMPTY)
-                call empty_cell_disabled(x_px, y_px, w_px, h_px)
+                call empty_cell(x_px, y_px, s_px, cell_regular_color)
              case (CELL_CROSS)
-                call cross_cell(x_px, y_px, w_px, h_px)
+                call cross_cell(x_px, y_px, s_px)
              case (CELL_KNOTT)
-                call knot_cell(x_px, y_px, w_px, h_px)
+                call knot_cell(x_px, y_px, s_px)
              end select
           end do
        end do
@@ -196,75 +217,96 @@ contains
     end select
   end subroutine render_game_state
 
-  subroutine empty_cell_disabled(x_px,y_px,w_px,h_px)
+  subroutine empty_cell(x_px, y_px, s_px, color)
+    use iso_c_binding, only: c_int32_t
     implicit none
-    real :: x_px, y_px, w_px, h_px
-    call draw_rectangle(int(x_px), int(y_px), int(w_px), int(h_px), cell_regular_color)
-  end subroutine empty_cell_disabled
+    real :: x_px, y_px, s_px
+    integer(c_int32_t) :: color
+    ! call draw_rectangle(int(x_px), int(y_px), int(s_px), int(s_px), color)
+    call draw_rectangle_rounded(Rectangle(x_px, y_px, s_px, s_px), 0.05, 10, color)
+  end subroutine empty_cell
 
-  function empty_cell_clickable(x_px,y_px,w_px,h_px) result(clicked)
+  function empty_cell_clickable(x_px,y_px,s_px) result(clicked)
     implicit none
-    real :: x_px, y_px, w_px, h_px, mouse_x_px, mouse_y_px
+    real :: x_px, y_px, s_px, mouse_x_px, mouse_y_px
     logical :: clicked
 
     mouse_x_px = get_mouse_x()
     mouse_y_px = get_mouse_y()
 
-    if (x_px <= mouse_x_px .AND. mouse_x_px < x_px + w_px .AND. &
-         y_px <= mouse_y_px .AND. mouse_y_px < y_px + h_px) then
-       call draw_rectangle(int(x_px), int(y_px), int(w_px), int(h_px), cell_highlighted_color)
+    if (x_px <= mouse_x_px .AND. mouse_x_px < x_px + s_px .AND. &
+         y_px <= mouse_y_px .AND. mouse_y_px < y_px + s_px) then
+       call empty_cell(x_px, y_px, s_px, cell_highlighted_color)
        clicked = is_mouse_button_pressed(MOUSE_BUTTON_LEFT)
     else
-       call draw_rectangle(int(x_px), int(y_px), int(w_px), int(h_px), cell_regular_color)
+       call empty_cell(x_px, y_px, s_px, cell_regular_color)
        clicked = .FALSE.
     end if
   end function empty_cell_clickable
 
-  subroutine cross_cell(x_px,y_px,w_px,h_px)
+  subroutine cross_cell(x_px,y_px,s_px)
     use iso_c_binding, only: c_float
     implicit none
-    real :: x_px, y_px, w_px, h_px
+    real :: x_px, y_px, s_px
     type(Vector2) :: startPos
     type(Vector2) :: endPos
     real :: thick, pad
 
-    call draw_rectangle(int(x_px), int(y_px), int(w_px), int(h_px), cell_regular_color)
+    call empty_cell(x_px, y_px, s_px, cell_regular_color)
 
-    thick = w_px*0.2
-    pad = w_px*0.2
+    thick = s_px*0.2
+    pad = s_px*0.2
 
     startPos%x = x_px + pad
     startPos%y = y_px + pad
-    endPos%x   = x_px + w_px - pad
-    endPos%y   = y_px + h_px - pad
+    endPos%x   = x_px + s_px - pad
+    endPos%y   = y_px + s_px - pad
     call draw_line_ex(startPos, endPos, thick, cross_color)
 
-    startPos%x = x_px + w_px - pad
+    startPos%x = x_px + s_px - pad
     startPos%y = y_px + pad
     endPos%x   = x_px + pad
-    endPos%y   = y_px + h_px - pad
+    endPos%y   = y_px + s_px - pad
     call draw_line_ex(startPos, endPos, thick, cross_color)
   end subroutine cross_cell
 
-  subroutine knot_cell(x_px,y_px,w_px,h_px)
+  subroutine knot_cell(x_px,y_px,s_px)
     use iso_c_binding, only: c_float
     implicit none
-    real :: x_px, y_px, w_px, h_px
+    real :: x_px, y_px, s_px
     type(Vector2) :: center
     real :: thick, pad
 
-    call draw_rectangle(int(x_px), int(y_px), int(w_px), int(h_px), cell_regular_color)
+    call empty_cell(x_px, y_px, s_px, cell_regular_color);
 
-    thick = w_px*0.2
-    pad = w_px*0.2
+    thick = s_px*0.2
+    pad = s_px*0.2
 
-    center%x = x_px + w_px/2
-    center%y = y_px + h_px/2
-    call draw_ring(center, (w_px - pad)/2 - thick, (w_px - pad)/2, 0.0, 360.0, 100, knot_color)
+    center%x = x_px + s_px/2
+    center%y = y_px + s_px/2
+    call draw_ring(center, (s_px - pad)/2 - thick, (s_px - pad)/2, 0.0, 360.0, 100, knot_color)
   end subroutine knot_cell
+
+  function restart_button(rec) result(clicked)
+    implicit none
+    type(Rectangle) :: rec
+    logical :: clicked
+    type(Vector2) :: text_pos, text_size
+
+    clicked = .false.
+    if (check_collision_point_rect(get_mouse_position(), rec)) then
+       call draw_rectangle_rounded(rec, 0.10, 10, button_color_hovered)
+       clicked = is_mouse_button_pressed(MOUSE_BUTTON_LEFT)
+    else
+       call draw_rectangle_rounded(rec, 0.15, 10, button_color_regular)
+    end if
+
+    text_size = measure_text_ex(game_font, "Restart"//C_NULL_CHAR, real(hello_chat_font_size), 0.0)
+    text_pos = Vector2(rec%x + rec%width/2 - text_size%x/2, rec%y + rec%height/2 - text_size%y/2)
+    call draw_text_ex(game_font, "Restart"//C_NULL_CHAR, text_pos, real(hello_chat_font_size), 0.0, WHITE)
+  end function restart_button
 end program
 
-! TODO: restart the game
 ! TODO: togglable AI (some sort of checkboxes on the side)
 ! TODO: particle effects on placing the shapes
 ! TODO: sound effects on placing the shapes and game over
