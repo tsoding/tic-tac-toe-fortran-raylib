@@ -57,6 +57,7 @@ program main
   call init_window(screen_width_px, screen_height_px, "Fortran GOTY"//C_NULL_CHAR)
   call set_target_fps(fps)
 
+  ! TODO: set the working directory to where the executable is located
   game_font = load_font_ex("./fonts/Alegreya-Regular.ttf"//C_NULL_CHAR, hello_chat_font_size, C_NULL_PTR, 0)
 
   do while (.not. window_should_close())
