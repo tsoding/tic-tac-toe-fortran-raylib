@@ -1,0 +1,6 @@
+- https://opengameart.org/content/sounds-fxs
+  - misc 18.ogg
+  - misc 20.ogg
+  - misc 22.ogg
+  - misc 26.ogg
+  - misc 39.ogg
