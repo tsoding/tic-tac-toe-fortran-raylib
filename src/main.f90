@@ -108,6 +108,7 @@ contains
        end do
     end do
 
+    ! TODO: the size of the restart button should depend on the size of the screen
     if (restart_button(rectangle(board_x_px + board_size_px/2 - button_width/2, &
          board_y_px + board_size_px/2 - button_height/2, &
          button_width, button_height))) then
@@ -307,9 +308,9 @@ contains
   end function restart_button
 end program
 
-! TODO: togglable AI (some sort of checkboxes on the side)
-! TODO: particle effects on placing the shapes
-! TODO: sound effects on placing the shapes and game over
-! TODO: customizable board size
-
-! TODO: accessibility: control via keyboard
+! # Roadmap
+! - TODO: togglable AI (some sort of checkboxes on the side)
+! - TODO: particle effects on placing the shapes
+! - TODO: sound effects on placing the shapes and game over
+! - TODO: customizable board size
+! - TODO: accessibility: control via keyboard
