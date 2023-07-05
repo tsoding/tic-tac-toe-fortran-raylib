@@ -263,3 +263,9 @@ contains
     call draw_ring(center, (w_px - pad)/2 - thick, (w_px - pad)/2, 0.0, 360.0, 100, knot_color)
   end subroutine knot_cell
 end program
+
+! TODO: restart the game
+! TODO: togglable AI (some sort of checkboxes on the side)
+! TODO: particle effects on placing the shapes
+! TODO: sound effects on placing the shapes and game over
+! TODO: customizable board size
