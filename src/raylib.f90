@@ -209,5 +209,12 @@ module raylib
        character(kind=c_char) :: text(*)
        real(c_float),value    :: fontSize, spacing
      end function measure_text_ex
+
+     ! RLAPI Color ColorBrightness(Color color, float factor);                     // Get color with brightness correction, brightness factor goes from -1.0f to 1.0f
+     integer(c_int32_t) function color_brightness(color, factor) bind(C, name="ColorBrightness")
+       use iso_c_binding, only: c_float, c_int32_t
+       integer(c_int32_t), value :: color
+       real(c_float), value :: factor
+     end function color_brightness
   end interface
 end module raylib

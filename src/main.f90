@@ -5,6 +5,7 @@ program main
   use raylib
   use game
   use ai
+  use ui
   implicit none
 
   ! Measure units:
@@ -14,16 +15,10 @@ program main
   integer(c_int),     parameter :: screen_width_px        = 800
   integer(c_int),     parameter :: screen_height_px       = 600
   integer(c_int),     parameter :: fps                    = 60
-  integer(c_int32_t), parameter :: cell_regular_color     = color(z'FF252525')
-  integer(c_int32_t), parameter :: cell_highlighted_color = color(z'FF353535')
-  integer(c_int32_t), parameter :: cross_color            = color(z'FFFF6030')
-  integer(c_int32_t), parameter :: knot_color             = color(z'FF3030FF')
   integer(c_int32_t), parameter :: background_color       = color(z'FF181818')
   integer(c_int32_t), parameter :: strikethrough_color    = color(z'FFFFFFFF')
   real,               parameter :: board_padding_rl       = 0.03
   integer, parameter :: hello_chat_font_size = 48
-  integer(c_int32_t), parameter :: button_color_regular           = color(z'FFFF6030')
-  integer(c_int32_t), parameter :: button_color_hovered           = color(z'FFFF3030')
   real, parameter :: button_width = 200
   real, parameter :: button_height = 100
 
@@ -110,9 +105,9 @@ contains
     end do
 
     ! TODO: the size of the restart button should depend on the size of the screen
-    if (restart_button(rectangle(board_x_px + board_size_px/2 - button_width/2, &
+    if (restart_button(game_font, rectangle(board_x_px + board_size_px/2 - button_width/2, &
          board_y_px + board_size_px/2 - button_height/2, &
-         button_width, button_height))) then
+         button_width, button_height), cross_color)) then
        board(:,:) = 0
        state = STATE_GAME
        current_player = CELL_CROSS
@@ -147,9 +142,9 @@ contains
     endPos%y   = board_y_px + ((final_line%y-1) + 2*final_line%dy)*cell_size_px + cell_size_px/2 + final_line%dy*(cell_size_px/3)
     call draw_line_ex(startPos, endPos, thick, strikethrough_color)
 
-    if (restart_button(rectangle(board_x_px + board_size_px/2 - button_width/2, &
+    if (restart_button(game_font, rectangle(board_x_px + board_size_px/2 - button_width/2, &
          board_y_px + board_size_px/2 - button_height/2, &
-         button_width, button_height))) then
+         button_width, button_height), cross_color)) then
        board(:,:) = 0
        state = STATE_GAME
        current_player = CELL_CROSS
@@ -218,95 +213,6 @@ contains
        end if
     end select
   end subroutine render_game_state
-
-  subroutine empty_cell(x_px, y_px, s_px, color)
-    use iso_c_binding, only: c_int32_t
-    implicit none
-    real :: x_px, y_px, s_px
-    integer(c_int32_t) :: color
-    ! call draw_rectangle(int(x_px), int(y_px), int(s_px), int(s_px), color)
-    call draw_rectangle_rounded(Rectangle(x_px, y_px, s_px, s_px), 0.05, 10, color)
-  end subroutine empty_cell
-
-  function empty_cell_clickable(x_px,y_px,s_px) result(clicked)
-    implicit none
-    real :: x_px, y_px, s_px, mouse_x_px, mouse_y_px
-    logical :: clicked
-
-    mouse_x_px = get_mouse_x()
-    mouse_y_px = get_mouse_y()
-
-    if (x_px <= mouse_x_px .AND. mouse_x_px < x_px + s_px .AND. &
-         y_px <= mouse_y_px .AND. mouse_y_px < y_px + s_px) then
-       call empty_cell(x_px, y_px, s_px, cell_highlighted_color)
-       clicked = is_mouse_button_pressed(MOUSE_BUTTON_LEFT)
-    else
-       call empty_cell(x_px, y_px, s_px, cell_regular_color)
-       clicked = .FALSE.
-    end if
-  end function empty_cell_clickable
-
-  subroutine cross_cell(x_px,y_px,s_px)
-    use iso_c_binding, only: c_float
-    implicit none
-    real :: x_px, y_px, s_px
-    type(Vector2) :: startPos
-    type(Vector2) :: endPos
-    real :: thick, pad
-
-    call empty_cell(x_px, y_px, s_px, cell_regular_color)
-
-    thick = s_px*0.2
-    pad = s_px*0.2
-
-    startPos%x = x_px + pad
-    startPos%y = y_px + pad
-    endPos%x   = x_px + s_px - pad
-    endPos%y   = y_px + s_px - pad
-    call draw_line_ex(startPos, endPos, thick, cross_color)
-
-    startPos%x = x_px + s_px - pad
-    startPos%y = y_px + pad
-    endPos%x   = x_px + pad
-    endPos%y   = y_px + s_px - pad
-    call draw_line_ex(startPos, endPos, thick, cross_color)
-  end subroutine cross_cell
-
-  subroutine knot_cell(x_px,y_px,s_px)
-    use iso_c_binding, only: c_float
-    implicit none
-    real :: x_px, y_px, s_px
-    type(Vector2) :: center
-    real :: thick, pad
-
-    call empty_cell(x_px, y_px, s_px, cell_regular_color);
-
-    thick = s_px*0.2
-    pad = s_px*0.2
-
-    center%x = x_px + s_px/2
-    center%y = y_px + s_px/2
-    call draw_ring(center, (s_px - pad)/2 - thick, (s_px - pad)/2, 0.0, 360.0, 100, knot_color)
-  end subroutine knot_cell
-
-  function restart_button(rec) result(clicked)
-    implicit none
-    type(Rectangle) :: rec
-    logical :: clicked
-    type(Vector2) :: text_pos, text_size
-
-    clicked = .false.
-    if (check_collision_point_rect(get_mouse_position(), rec)) then
-       call draw_rectangle_rounded(rec, 0.10, 10, button_color_hovered)
-       clicked = is_mouse_button_pressed(MOUSE_BUTTON_LEFT)
-    else
-       call draw_rectangle_rounded(rec, 0.15, 10, button_color_regular)
-    end if
-
-    text_size = measure_text_ex(game_font, "Restart"//C_NULL_CHAR, real(hello_chat_font_size), 0.0)
-    text_pos = Vector2(rec%x + rec%width/2 - text_size%x/2, rec%y + rec%height/2 - text_size%y/2)
-    call draw_text_ex(game_font, "Restart"//C_NULL_CHAR, text_pos, real(hello_chat_font_size), 0.0, WHITE)
-  end function restart_button
 end program
 
 ! # Roadmap
