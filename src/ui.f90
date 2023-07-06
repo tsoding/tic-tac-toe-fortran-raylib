@@ -3,12 +3,14 @@
 module ui
   use iso_c_binding, only: c_null_char, c_int32_t
   use raylib
+  use game
   implicit none
 
   integer(c_int32_t), parameter :: cell_regular_color     = color(z'FF252525')
   integer(c_int32_t), parameter :: cell_highlighted_color = color(z'FF353535')
   integer(c_int32_t), parameter :: knot_color             = color(z'FF3030FF')
   integer(c_int32_t), parameter :: cross_color            = color(z'FFFF6030')
+  real,               parameter :: board_padding_rl       = 0.03
 
 contains
   function restart_button(button_font, rec, color) result(clicked)
@@ -100,4 +102,32 @@ contains
     endPos%y   = y_px + s_px - pad
     call draw_line_ex(startPos, endPos, thick, cross_color)
   end subroutine cross_cell
+
+  subroutine render_board(board_x_px, board_y_px, board_size_px, board)
+    implicit none
+
+    real,intent(in) :: board_x_px, board_y_px, board_size_px
+    integer,dimension(board_size_cl,board_size_cl),intent(in) :: board
+
+    integer :: x_cl, y_cl
+    real :: cell_size_px, x_px, y_px, s_px
+
+    cell_size_px = board_size_px/board_size_cl
+
+    do x_cl=1,board_size_cl
+       do y_cl=1,board_size_cl
+          x_px = board_x_px + (x_cl - 1)*cell_size_px + (cell_size_px*board_padding_rl)/2
+          y_px = board_y_px + (y_cl - 1)*cell_size_px + (cell_size_px*board_padding_rl)/2
+          s_px = cell_size_px - (cell_size_px*board_padding_rl)
+          select case (board(x_cl, y_cl))
+          case (CELL_EMPTY)
+             call empty_cell(x_px, y_px, s_px, cell_regular_color)
+          case (CELL_CROSS)
+             call cross_cell(x_px, y_px, s_px)
+          case (CELL_KNOTT)
+             call knot_cell(x_px, y_px, s_px)
+          end select
+       end do
+    end do
+  end subroutine render_board
 end module ui
