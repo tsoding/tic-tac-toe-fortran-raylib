@@ -61,7 +61,6 @@ contains
   end function empty_cell_clickable
 
   subroutine knot_cell(x_px,y_px,s_px)
-    use iso_c_binding, only: c_float
     implicit none
     real :: x_px, y_px, s_px
     type(Vector2) :: center
@@ -78,7 +77,6 @@ contains
   end subroutine knot_cell
 
   subroutine cross_cell(x_px,y_px,s_px)
-    use iso_c_binding, only: c_float
     implicit none
     real :: x_px, y_px, s_px
     type(Vector2) :: startPos
@@ -130,4 +128,44 @@ contains
        end do
     end do
   end subroutine render_board
+
+  function render_board_clickable(board_x_px, board_y_px, board_size_px, board, clicked_x_cl, clicked_y_cl) result(clicked)
+    implicit none
+
+    real,intent(in) :: board_x_px, board_y_px, board_size_px
+    integer,dimension(board_size_cl,board_size_cl),intent(in) :: board
+    integer,intent(out) :: clicked_x_cl, clicked_y_cl
+    logical :: clicked
+
+    integer :: x_cl, y_cl
+    real :: cell_size_px, x_px, y_px, s_px
+
+    cell_size_px = board_size_px/board_size_cl
+
+    clicked = .false.
+    do x_cl=1,board_size_cl
+       do y_cl=1,board_size_cl
+          x_px = board_x_px + (x_cl - 1)*cell_size_px + (cell_size_px*board_padding_rl)/2
+          y_px = board_y_px + (y_cl - 1)*cell_size_px + (cell_size_px*board_padding_rl)/2
+          s_px = cell_size_px - (cell_size_px*board_padding_rl)
+          select case (board(x_cl, y_cl))
+          case (CELL_EMPTY)
+             if (.not. clicked) then
+                clicked = empty_cell_clickable(x_px, y_px, s_px)
+                if (clicked) then
+                   clicked_x_cl = x_cl
+                   clicked_y_cl = y_cl
+                end if
+             else
+                ! If we already clicked a cell the rest of the cells stay disabled until the end of the frame
+                call empty_cell(x_px, y_px, s_px, cell_regular_color)
+             end if
+          case (CELL_CROSS)
+             call cross_cell(x_px, y_px, s_px)
+          case (CELL_KNOTT)
+             call knot_cell(x_px, y_px, s_px)
+          end select
+       end do
+    end do
+  end function render_board_clickable
 end module ui

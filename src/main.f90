@@ -23,8 +23,6 @@ program main
   real, parameter :: button_height = 100
 
   real    :: dt
-  integer :: x_cl, y_cl, next_x_cl, next_y_cl
-  real    :: x_px, y_px, s_px
   integer :: window_width_px, window_height_px
   real    :: board_x_px, board_y_px, board_size_px, cell_size_px
 
@@ -127,34 +125,27 @@ contains
 
   subroutine render_game_state()
     implicit none
+
+    integer :: x_cl, y_cl, next_x_cl, next_y_cl
+
     select case(current_player)
     case (CELL_CROSS)
-       do x_cl=1,board_size_cl
-          do y_cl=1,board_size_cl
-             x_px = board_x_px + (x_cl - 1)*cell_size_px + (cell_size_px*board_padding_rl)/2
-             y_px = board_y_px + (y_cl - 1)*cell_size_px + (cell_size_px*board_padding_rl)/2
-             s_px = cell_size_px - (cell_size_px*board_padding_rl)
-             select case (board(x_cl, y_cl))
-             case (CELL_EMPTY)
-                if (empty_cell_clickable(x_px, y_px, s_px)) then
-                   board(x_cl, y_cl) = current_player
-                   if (player_won(board, CELL_CROSS, final_line)) then
-                      state = STATE_WON
-                      return
-                   end if
-                   if (player_won(board, CELL_KNOTT, final_line)) then
-                      state = STATE_WON
-                      return
-                   end if
-                   current_player = 3 - current_player
-                end if
-             case (CELL_CROSS)
-                call cross_cell(x_px, y_px, s_px)
-             case (CELL_KNOTT)
-                call knot_cell(x_px, y_px, s_px)
-             end select
-          end do
-       end do
+       if (render_board_clickable(board_x_px, board_y_px, board_size_px, board, x_cl, y_cl)) then
+          board(x_cl, y_cl) = current_player
+          if (player_won(board, CELL_CROSS, final_line)) then
+             state = STATE_WON
+             return
+          end if
+          if (player_won(board, CELL_KNOTT, final_line)) then
+             state = STATE_WON
+             return
+          end if
+          if (board_full(board)) then
+             state = STATE_TIE
+             return
+          end if
+          current_player = 3 - current_player
+       end if
     case (CELL_KNOTT)
        call render_board(board_x_px, board_y_px, board_size_px, board)
 
