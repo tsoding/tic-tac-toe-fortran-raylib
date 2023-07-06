@@ -37,14 +37,7 @@ program main
   integer, parameter :: STATE_WON  = 1
   integer, parameter :: STATE_TIE  = 2
 
-  state = STATE_GAME
-  board(:,:) = reshape((/ &
-      0, 0, 0, &
-      0, 0, 0, &
-      0, 0, 0  &
-  /), (/board_size_cl, board_size_cl/))
-
-  current_player = CELL_CROSS
+  call restart_game()
 
   call set_config_flags(FLAG_WINDOW_RESIZABLE)
   call init_window(screen_width_px, screen_height_px, "Fortran GOTY"//C_NULL_CHAR)
@@ -91,9 +84,7 @@ contains
     call render_board(board_x_px, board_y_px, board_size_px, board)
 
     if (restart_button(game_font, board_x_px, board_y_px, board_size_px)) then
-       board(:,:) = 0
-       state = STATE_GAME
-       current_player = CELL_CROSS
+      call restart_game()
     end if
   end subroutine render_tie_state
 
@@ -104,9 +95,7 @@ contains
     call strikethrough(final_line, board_x_px, board_y_px, board_size_px)
 
     if (restart_button(game_font, board_x_px, board_y_px, board_size_px)) then
-       board(:,:) = 0
-       state = STATE_GAME
-       current_player = CELL_CROSS
+       call restart_game()
     end if
   end subroutine render_won_state
 
@@ -152,6 +141,12 @@ contains
        end if
     end select
   end subroutine render_game_state
+
+  subroutine restart_game()
+    board(:,:) = 0
+    state = STATE_GAME
+    current_player = CELL_CROSS
+  end subroutine restart_game
 end program
 
 ! # Roadmap
