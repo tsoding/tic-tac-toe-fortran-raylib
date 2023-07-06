@@ -18,7 +18,7 @@ program main
   integer(c_int32_t), parameter :: background_color       = color(z'FF181818')
   integer(c_int32_t), parameter :: strikethrough_color    = color(z'FFFFFFFF')
 
-  integer, parameter :: hello_chat_font_size = 48
+  integer, parameter :: font_size = 69
   real, parameter :: button_width = 200
   real, parameter :: button_height = 100
 
@@ -51,7 +51,8 @@ program main
   call set_target_fps(fps)
 
   ! TODO: set the working directory to where the executable is located
-  game_font = load_font_ex("./fonts/Alegreya-Regular.ttf"//C_NULL_CHAR, hello_chat_font_size, C_NULL_PTR, 0)
+  game_font = load_font_ex("./fonts/Alegreya-Regular.ttf"//C_NULL_CHAR, font_size, C_NULL_PTR, 0)
+  call set_texture_filter(game_font%texture, TEXTURE_FILTER_BILINEAR)
 
   do while (.not. window_should_close())
      dt               = get_frame_time()
@@ -89,10 +90,7 @@ contains
 
     call render_board(board_x_px, board_y_px, board_size_px, board)
 
-    ! TODO: the size of the restart button should depend on the size of the screen
-    if (restart_button(game_font, rectangle(board_x_px + board_size_px/2 - button_width/2, &
-         board_y_px + board_size_px/2 - button_height/2, &
-         button_width, button_height), cross_color)) then
+    if (restart_button(game_font, board_x_px, board_y_px, board_size_px)) then
        board(:,:) = 0
        state = STATE_GAME
        current_player = CELL_CROSS
@@ -102,6 +100,7 @@ contains
   subroutine render_won_state()
     implicit none
     type(Vector2) :: startPos, endPos
+    type(Rectangle) :: button_boundary
     real :: thick
 
     call render_board(board_x_px, board_y_px, board_size_px, board)
@@ -114,9 +113,7 @@ contains
     endPos%y   = board_y_px + ((final_line%y-1) + 2*final_line%dy)*cell_size_px + cell_size_px/2 + final_line%dy*(cell_size_px/3)
     call draw_line_ex(startPos, endPos, thick, strikethrough_color)
 
-    if (restart_button(game_font, rectangle(board_x_px + board_size_px/2 - button_width/2, &
-         board_y_px + board_size_px/2 - button_height/2, &
-         button_width, button_height), cross_color)) then
+    if (restart_button(game_font, board_x_px, board_y_px, board_size_px)) then
        board(:,:) = 0
        state = STATE_GAME
        current_player = CELL_CROSS

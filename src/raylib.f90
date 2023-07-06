@@ -54,6 +54,10 @@ module raylib
 
   integer(c_int32_t), parameter :: FLAG_WINDOW_RESIZABLE = hex32(z'00000004')
 
+  ! TODO: Define a proper enumeration for TextureFilter.
+  ! I heard Fortran had something for simulating C enumerations
+  integer(c_int), parameter :: TEXTURE_FILTER_BILINEAR = 1
+
   interface
      subroutine init_window(width,height,title) bind(C, name="InitWindow")
        use iso_c_binding, only: c_char, c_int
@@ -216,5 +220,13 @@ module raylib
        integer(c_int32_t), value :: color
        real(c_float), value :: factor
      end function color_brightness
+
+     ! RLAPI void SetTextureFilter(Texture2D texture, int filter);                                              // Set texture scaling filter mode
+     subroutine set_texture_filter(input_texture, filter) bind(C, name="SetTextureFilter")
+       use iso_c_binding, only: c_int
+       import :: Texture
+       type(Texture), value :: input_texture
+       integer(c_int), value :: filter
+     end subroutine set_texture_filter
   end interface
 end module raylib

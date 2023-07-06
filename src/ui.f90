@@ -11,28 +11,36 @@ module ui
   integer(c_int32_t), parameter :: knot_color             = color(z'FF3030FF')
   integer(c_int32_t), parameter :: cross_color            = color(z'FFFF6030')
   real,               parameter :: board_padding_rl       = 0.03
+  real, parameter :: restart_button_width_rl = 0.3
+  integer(c_int32_t), parameter :: restart_button_color = color(z'FFEEEEEE')
+
 
 contains
-  function restart_button(button_font, rec, color) result(clicked)
+  function restart_button(button_font, board_x_px, board_y_px, board_size_px) result(clicked)
     implicit none
     type(Font),intent(in) :: button_font
-    type(Rectangle),intent(in) :: rec
-    integer(c_int32_t),intent(in) :: color
+    real,intent(in) :: board_x_px, board_y_px, board_size_px
     logical :: clicked
 
     type(Vector2) :: text_pos, text_size
+    type(Rectangle) :: rec
+
+    rec%width = board_size_px*restart_button_width_rl
+    rec%height = rec%width*0.5
+    rec%x = board_x_px + board_size_px/2 - rec%width/2
+    rec%y = board_y_px + board_size_px/2 - rec%height/2
 
     clicked = .false.
     if (check_collision_point_rect(get_mouse_position(), rec)) then
-       call draw_rectangle_rounded(rec, 0.1, 10, color_brightness(color, -0.15))
+       call draw_rectangle_rounded(rec, 0.1, 10, color_brightness(restart_button_color, -0.15))
        clicked = is_mouse_button_pressed(MOUSE_BUTTON_LEFT)
     else
-       call draw_rectangle_rounded(rec, 0.1, 10, color)
+       call draw_rectangle_rounded(rec, 0.1, 10, restart_button_color)
     end if
 
-    text_size = measure_text_ex(button_font, "Restart"//C_NULL_CHAR, 48.0, 0.0)
+    text_size = measure_text_ex(button_font, "Restart"//C_NULL_CHAR, rec%height*0.4, 0.0)
     text_pos = Vector2(rec%x + rec%width/2 - text_size%x/2, rec%y + rec%height/2 - text_size%y/2)
-    call draw_text_ex(button_font, "Restart"//C_NULL_CHAR, text_pos, 48.0, 0.0, WHITE)
+    call draw_text_ex(button_font, "Restart"//C_NULL_CHAR, text_pos, rec%height*0.4, 0.0, BLACK)
   end function restart_button
 
   subroutine empty_cell(x_px, y_px, s_px, color)
