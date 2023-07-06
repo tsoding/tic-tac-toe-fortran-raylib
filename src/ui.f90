@@ -6,14 +6,14 @@ module ui
   use game
   implicit none
 
-  integer(c_int32_t), parameter :: cell_regular_color     = color(z'FF252525')
-  integer(c_int32_t), parameter :: cell_highlighted_color = color(z'FF353535')
-  integer(c_int32_t), parameter :: knot_color             = color(z'FF3030FF')
-  integer(c_int32_t), parameter :: cross_color            = color(z'FFFF6030')
-  real,               parameter :: board_padding_rl       = 0.03
-  real, parameter :: restart_button_width_rl = 0.3
-  integer(c_int32_t), parameter :: restart_button_color = color(z'FFEEEEEE')
-
+  integer(c_int32_t), parameter :: cell_regular_color      = color(z'FF252525')
+  integer(c_int32_t), parameter :: cell_highlighted_color  = color(z'FF353535')
+  integer(c_int32_t), parameter :: knot_color              = color(z'FF3030F0')
+  integer(c_int32_t), parameter :: cross_color             = color(z'FF30F060')
+  integer(c_int32_t), parameter :: restart_button_color    = color(z'FFEEEEEE')
+  integer(c_int32_t), parameter :: strikethrough_color     = restart_button_color
+  real,               parameter :: board_padding_rl        = 0.03
+  real,               parameter :: restart_button_width_rl = 0.3
 
 contains
   function restart_button(button_font, board_x_px, board_y_px, board_size_px) result(clicked)
@@ -26,7 +26,7 @@ contains
     type(Rectangle) :: rec
 
     rec%width = board_size_px*restart_button_width_rl
-    rec%height = rec%width*0.5
+    rec%height = rec%width*0.4
     rec%x = board_x_px + board_size_px/2 - rec%width/2
     rec%y = board_y_px + board_size_px/2 - rec%height/2
 
@@ -176,4 +176,22 @@ contains
        end do
     end do
   end function render_board_clickable
+
+  subroutine strikethrough(final_line, board_x_px, board_y_px, board_size_px)
+    implicit none
+    type(TLine),intent(in) :: final_line
+    real,intent(in) :: board_x_px, board_y_px, board_size_px
+
+    real :: thick, cell_size_px
+    type(Vector2) :: startPos, endPos
+
+    cell_size_px = board_size_px/board_size_cl
+
+    thick = cell_size_px*0.2
+    startPos%x = board_x_px + (final_line%x-1)*cell_size_px + cell_size_px/2 + (-final_line%dx)*(cell_size_px/3)
+    startPos%y = board_y_px + (final_line%y-1)*cell_size_px + cell_size_px/2 + (-final_line%dy)*(cell_size_px/3)
+    endPos%x   = board_x_px + ((final_line%x-1) + 2*final_line%dx)*cell_size_px + cell_size_px/2 + final_line%dx*(cell_size_px/3)
+    endPos%y   = board_y_px + ((final_line%y-1) + 2*final_line%dy)*cell_size_px + cell_size_px/2 + final_line%dy*(cell_size_px/3)
+    call draw_line_ex(startPos, endPos, thick, strikethrough_color)
+  end subroutine strikethrough
 end module ui

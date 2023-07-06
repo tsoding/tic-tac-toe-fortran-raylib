@@ -16,7 +16,7 @@ program main
   integer(c_int),     parameter :: screen_height_px       = 600
   integer(c_int),     parameter :: fps                    = 60
   integer(c_int32_t), parameter :: background_color       = color(z'FF181818')
-  integer(c_int32_t), parameter :: strikethrough_color    = color(z'FFFFFFFF')
+
 
   integer, parameter :: font_size = 69
   real, parameter :: button_width = 200
@@ -99,19 +99,9 @@ contains
 
   subroutine render_won_state()
     implicit none
-    type(Vector2) :: startPos, endPos
-    type(Rectangle) :: button_boundary
-    real :: thick
 
     call render_board(board_x_px, board_y_px, board_size_px, board)
-
-    thick = cell_size_px*0.2
-
-    startPos%x = board_x_px + (final_line%x-1)*cell_size_px + cell_size_px/2 + (-final_line%dx)*(cell_size_px/3)
-    startPos%y = board_y_px + (final_line%y-1)*cell_size_px + cell_size_px/2 + (-final_line%dy)*(cell_size_px/3)
-    endPos%x   = board_x_px + ((final_line%x-1) + 2*final_line%dx)*cell_size_px + cell_size_px/2 + final_line%dx*(cell_size_px/3)
-    endPos%y   = board_y_px + ((final_line%y-1) + 2*final_line%dy)*cell_size_px + cell_size_px/2 + final_line%dy*(cell_size_px/3)
-    call draw_line_ex(startPos, endPos, thick, strikethrough_color)
+    call strikethrough(final_line, board_x_px, board_y_px, board_size_px)
 
     if (restart_button(game_font, board_x_px, board_y_px, board_size_px)) then
        board(:,:) = 0
