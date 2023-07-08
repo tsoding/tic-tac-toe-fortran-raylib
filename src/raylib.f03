@@ -147,6 +147,16 @@ module raylib
        integer(c_int),value :: button
      end function is_mouse_button_pressed
 
+     logical(c_bool) function is_mouse_button_down(button) bind(C, name="IsMouseButtonDown")
+       use iso_c_binding, only: c_int, c_bool
+       integer(c_int),value :: button
+     end function is_mouse_button_down
+
+     logical(c_bool) function is_mouse_button_released(button) bind(C, name="IsMouseButtonReleased")
+       use iso_c_binding, only: c_int, c_bool
+       integer(c_int),value :: button
+     end function is_mouse_button_released
+
      ! RLAPI void DrawText(const char *text, int posX, int posY, int fontSize, Color color);       // Draw text (using default font)
      subroutine draw_text(text,posX,posY,fontSize,color) bind(C, name="DrawText")
        use iso_c_binding, only: c_char, c_int, c_int32_t

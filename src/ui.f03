@@ -32,8 +32,12 @@ contains
 
     clicked = .false.
     if (check_collision_point_rect(get_mouse_position(), rec)) then
-       call draw_rectangle_rounded(rec, 0.1, 10, color_brightness(restart_button_color, -0.15))
-       clicked = is_mouse_button_pressed(MOUSE_BUTTON_LEFT)
+       if (is_mouse_button_down(MOUSE_BUTTON_LEFT)) then
+          call draw_rectangle_rounded(rec, 0.1, 10, color_brightness(restart_button_color, -0.30))
+       else
+          call draw_rectangle_rounded(rec, 0.1, 10, color_brightness(restart_button_color, -0.15))
+       end if
+       clicked = is_mouse_button_released(MOUSE_BUTTON_LEFT)
     else
        call draw_rectangle_rounded(rec, 0.1, 10, restart_button_color)
     end if
