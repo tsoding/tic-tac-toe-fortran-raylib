@@ -53,6 +53,7 @@ module raylib
   integer(c_int32_t), parameter :: MOUSE_BUTTON_LEFT = 0
 
   integer(c_int32_t), parameter :: FLAG_WINDOW_RESIZABLE = hex32(z'00000004')
+  integer(c_int32_t), parameter :: FLAG_MSAA_4X_HINT     = hex32(z'00000020')
 
   ! TODO: Define a proper enumeration for TextureFilter.
   ! I heard Fortran had something for simulating C enumerations

@@ -40,6 +40,7 @@ program main
   call restart_game()
 
   call set_config_flags(FLAG_WINDOW_RESIZABLE)
+  call set_config_flags(FLAG_MSAA_4X_HINT)
   call init_window(screen_width_px, screen_height_px, "Fortran GOTY"//C_NULL_CHAR)
   call set_target_fps(fps)
 
