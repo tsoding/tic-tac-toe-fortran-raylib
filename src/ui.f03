@@ -54,6 +54,12 @@ contains
     call draw_rectangle_rounded(Rectangle(x_px, y_px, s_px, s_px), 0.1, 10, color)
   end subroutine empty_cell
 
+  ! TODO: we want the clickable cells behave like the restart button
+  ! Steps to reproduce the problem
+  ! 1. start the game
+  ! 2. click cells right in the center in the following order (1,2) (1,3) (2,3) (2,2) [format is (x, y)]
+  ! 3. observe that click on (2,2) also clicked the restart button
+  ! If clickable cells were activated on release, this would not happen
   function empty_cell_clickable(x_px,y_px,s_px) result(clicked)
     implicit none
     real :: x_px, y_px, s_px, mouse_x_px, mouse_y_px
