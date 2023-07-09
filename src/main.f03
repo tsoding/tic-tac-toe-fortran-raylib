@@ -17,10 +17,7 @@ program main
   integer(c_int),     parameter :: fps                    = 60
   integer(c_int32_t), parameter :: background_color       = color(z'FF181818')
 
-
   integer, parameter :: font_size = 69
-  real, parameter :: button_width = 200
-  real, parameter :: button_height = 100
 
   real    :: dt
   integer :: window_width_px, window_height_px
