@@ -6,12 +6,11 @@ module ui
   use game
   implicit none
 
-  integer(c_int32_t), parameter :: cell_regular_color      = color(z'FF252525')
-  integer(c_int32_t), parameter :: cell_highlighted_color  = color(z'FF353535')
+  integer(c_int32_t), parameter :: cell_color              = color(z'FF252525')
   integer(c_int32_t), parameter :: knot_color              = color(z'FF3030F0')
   integer(c_int32_t), parameter :: cross_color             = color(z'FF30F060')
   integer(c_int32_t), parameter :: restart_button_color    = color(z'FFEEEEEE')
-  integer(c_int32_t), parameter :: strikethrough_color     = restart_button_color
+  integer(c_int32_t), parameter :: strikethrough_color     = color(z'FFEEEEEE')
   real,               parameter :: board_padding_rl        = 0.03
   real,               parameter :: restart_button_width_rl = 0.3
 
@@ -62,18 +61,14 @@ contains
   ! If clickable cells were activated on release, this would not happen
   function empty_cell_clickable(x_px,y_px,s_px) result(clicked)
     implicit none
-    real :: x_px, y_px, s_px, mouse_x_px, mouse_y_px
+    real,intent(in) :: x_px, y_px, s_px
     logical :: clicked
 
-    mouse_x_px = get_mouse_x()
-    mouse_y_px = get_mouse_y()
-
-    if (x_px <= mouse_x_px .AND. mouse_x_px < x_px + s_px .AND. &
-         y_px <= mouse_y_px .AND. mouse_y_px < y_px + s_px) then
-       call empty_cell(x_px, y_px, s_px, cell_highlighted_color)
+    if (check_collision_point_rect(get_mouse_position(), rectangle(x_px, y_px, s_px, s_px))) then
+       call empty_cell(x_px, y_px, s_px, color_brightness(cell_color, 0.10))
        clicked = is_mouse_button_pressed(MOUSE_BUTTON_LEFT)
     else
-       call empty_cell(x_px, y_px, s_px, cell_regular_color)
+       call empty_cell(x_px, y_px, s_px, cell_color)
        clicked = .FALSE.
     end if
   end function empty_cell_clickable
@@ -84,7 +79,7 @@ contains
     type(Vector2) :: center
     real :: thick, pad
 
-    call empty_cell(x_px, y_px, s_px, cell_regular_color);
+    call empty_cell(x_px, y_px, s_px, cell_color);
 
     thick = s_px*0.2
     pad = s_px*0.2
@@ -101,7 +96,7 @@ contains
     type(Vector2) :: endPos
     real :: thick, pad
 
-    call empty_cell(x_px, y_px, s_px, cell_regular_color)
+    call empty_cell(x_px, y_px, s_px, cell_color)
 
     thick = s_px*0.2
     pad = s_px*0.2
@@ -137,7 +132,7 @@ contains
           s_px = cell_size_px - (cell_size_px*board_padding_rl)
           select case (board(x_cl, y_cl))
           case (CELL_EMPTY)
-             call empty_cell(x_px, y_px, s_px, cell_regular_color)
+             call empty_cell(x_px, y_px, s_px, cell_color)
           case (CELL_CROSS)
              call cross_cell(x_px, y_px, s_px)
           case (CELL_KNOTT)
@@ -176,7 +171,7 @@ contains
                 end if
              else
                 ! If we already clicked a cell the rest of the cells stay disabled until the end of the frame
-                call empty_cell(x_px, y_px, s_px, cell_regular_color)
+                call empty_cell(x_px, y_px, s_px, cell_color)
              end if
           case (CELL_CROSS)
              call cross_cell(x_px, y_px, s_px)
