@@ -11,6 +11,12 @@ module ui
      real :: hover, hold
   end type Button_Style
 
+  enum, bind(C)
+     enumerator :: BUTTON_UNPRESSED = 0
+     enumerator :: BUTTON_HOVER
+     enumerator :: BUTTON_HOLD
+  end enum
+
   integer(c_int32_t), parameter :: cell_color              = color(z'FF252525')
   integer(c_int32_t), parameter :: knot_color              = color(z'FF3030F0')
   integer(c_int32_t), parameter :: cross_color             = color(z'FF30F060')
@@ -26,7 +32,12 @@ module ui
        color = restart_button_color, &
        hover = -0.10, &
        hold = -0.15)
+  ! TODO: checkbox line thickness should be relative
+  real, parameter :: checkbox_line_thickness_px = 10.0
+  integer(c_int32_t), parameter :: checkbox_color = restart_button_color
   integer, parameter :: restart_button_id = board_size_cl*board_size_cl + 1
+  integer, parameter :: cross_checkbox_id = restart_button_id + 1
+  integer, parameter :: knott_checkbox_id = cross_checkbox_id + 1
 
   integer :: active_button_id = 0
 
@@ -59,6 +70,84 @@ contains
     call draw_rectangle_rounded(Rectangle(x_px, y_px, s_px, s_px), 0.1, 10, color)
   end subroutine empty_cell
 
+  function button_logic(id, boundary, state) result(clicked)
+    integer,intent(in) :: id
+    type(Rectangle),intent(in) :: boundary
+    integer,intent(out) :: state
+    logical :: clicked
+    clicked = .FALSE.
+    state = BUTTON_UNPRESSED
+    if (active_button_id == 0) then
+       if (check_collision_point_rect(get_mouse_position(), boundary)) then
+          if (is_mouse_button_down(MOUSE_BUTTON_LEFT)) then
+             state = BUTTON_HOLD
+             active_button_id = id
+          else
+             state = BUTTON_HOVER
+          end if
+       else
+          state = BUTTON_UNPRESSED
+       end if
+    else if (active_button_id == id) then
+       if (is_mouse_button_released(MOUSE_BUTTON_LEFT)) then
+          clicked = check_collision_point_rect(get_mouse_position(), boundary)
+          active_button_id = 0
+          state = BUTTON_UNPRESSED
+       else
+          state = BUTTON_HOLD
+       end if
+    else
+       ! TODO: handle the situation when the active button was not rendered on mouse releasea
+       state = BUTTON_UNPRESSED
+    end if
+  end function button_logic
+
+  subroutine checkbox(id,boundary,state)
+    implicit none
+    integer,intent(in) :: id
+    type(Rectangle),intent(in) :: boundary
+    logical,intent(inout) :: state
+
+    integer :: button_state
+
+    if (button_logic(id, boundary, button_state)) then
+       state = .not. state
+    end if
+
+    if (state) then
+       select case (button_state)
+       case (BUTTON_UNPRESSED)
+          call draw_rectangle_rec(boundary, restart_button_color)
+       case (BUTTON_HOVER)
+          call draw_rectangle_rec( &
+               boundary, &
+               color_brightness(restart_button_color, restart_button_style%hover))
+       case (BUTTON_HOLD)
+          call draw_rectangle_rec( &
+               boundary, &
+               color_brightness(restart_button_color, restart_button_style%hold))
+       end select
+    else
+       select case (button_state)
+       case (BUTTON_UNPRESSED)
+          call draw_rectangle_lines_ex( &
+               boundary, &
+               checkbox_line_thickness_px, &
+               restart_button_color)
+       case (BUTTON_HOVER)
+          call draw_rectangle_lines_ex( &
+               boundary, &
+               checkbox_line_thickness_px, &
+               color_brightness(restart_button_color, restart_button_style%hover))
+       case (BUTTON_HOLD)
+          call draw_rectangle_lines_ex( &
+               boundary, &
+               checkbox_line_thickness_px, &
+               color_brightness(restart_button_color, restart_button_style%hold))
+       end select
+    end if
+  end subroutine checkbox
+
   function button(id,boundary,style) result(clicked)
     implicit none
     integer,            intent(in) :: id
@@ -66,30 +155,17 @@ contains
     type(Button_Style), intent(in) :: style
     logical :: clicked
 
-    clicked = .FALSE.
-    if (active_button_id == 0) then
-       if (check_collision_point_rect(get_mouse_position(), boundary)) then
-          if (is_mouse_button_down(MOUSE_BUTTON_LEFT)) then
-             call draw_rectangle_rounded(boundary, 0.10, 10, color_brightness(style%color, style%hold))
-             active_button_id = id
-          else
-             call draw_rectangle_rounded(boundary, 0.10, 10, color_brightness(style%color, style%hover))
-          end if
-       else
-          call draw_rectangle_rounded(boundary, 0.10, 10, style%color)
-       end if
-    else if (active_button_id == id) then
-       if (is_mouse_button_released(MOUSE_BUTTON_LEFT)) then
-          clicked = check_collision_point_rect(get_mouse_position(), boundary)
-          active_button_id = 0
-          call draw_rectangle_rounded(boundary, 0.10, 10, style%color)
-       else
-          call draw_rectangle_rounded(boundary, 0.10, 10, color_brightness(style%color, style%hold))
-       end if
-    else
-       ! TODO: handle the situation when the active button was not rendered on mouse releasea
+    integer :: state
+
+    clicked = button_logic(id, boundary, state)
+    select case (state)
+    case (BUTTON_UNPRESSED)
        call draw_rectangle_rounded(boundary, 0.10, 10, style%color)
-    end if
+    case (BUTTON_HOVER)
+       call draw_rectangle_rounded(boundary, 0.10, 10, color_brightness(style%color, style%hover))
+    case (BUTTON_HOLD)
+       call draw_rectangle_rounded(boundary, 0.10, 10, color_brightness(style%color, style%hold))
+    end select
   end function button
 
   function empty_cell_clickable(id,x_px,y_px,s_px) result(clicked)

@@ -239,5 +239,22 @@ module raylib
        type(Texture), value :: input_texture
        integer(c_int), value :: filter
      end subroutine set_texture_filter
+
+     ! RLAPI void DrawRectangleRec(Rectangle rec, Color color);                                                 // Draw a color-filled rectangle
+     subroutine draw_rectangle_rec(rec, color) bind(C, name="DrawRectangleRec")
+       use iso_c_binding, only: c_int32_t
+       import :: Rectangle
+       type(Rectangle), value :: rec
+       integer(c_int32_t), value :: color
+     end subroutine draw_rectangle_rec
+
+     ! RLAPI void DrawRectangleLinesEx(Rectangle rec, float lineThick, Color color);                            // Draw rectangle outline with extended parameters
+     subroutine draw_rectangle_lines_ex(rec, lineThick, color) bind(C, name="DrawRectangleLinesEx")
+       use iso_c_binding, only: c_float, c_int32_t
+       import :: Rectangle
+       type(Rectangle), value :: rec
+       real(c_float), value :: lineThick
+       integer(c_int32_t), value :: color
+     end subroutine draw_rectangle_lines_ex
   end interface
 end module raylib

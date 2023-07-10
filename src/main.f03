@@ -20,8 +20,8 @@ program main
   integer, parameter :: font_size = 69
 
   real    :: dt
-  integer :: window_width_px, window_height_px
-  real    :: board_x_px, board_y_px, board_size_px, cell_size_px
+  ! integer :: window_width_px, window_height_px
+  real    :: board_x_px, board_y_px, board_boundary_width, board_boundary_height, board_size_px, cell_size_px
 
   integer,dimension(board_size_cl, board_size_cl) :: board
 
@@ -30,9 +30,16 @@ program main
   integer :: state
   type(Font) :: game_font
 
-  integer, parameter :: STATE_GAME = 0
-  integer, parameter :: STATE_WON  = 1
-  integer, parameter :: STATE_TIE  = 2
+  logical, dimension(2) :: ai_checkboxes
+
+  enum, bind(C)
+     enumerator :: STATE_GAME = 0
+     enumerator :: STATE_WON
+     enumerator :: STATE_TIE
+  end enum
+
+  ai_checkboxes(CELL_CROSS) = .false.
+  ai_checkboxes(CELL_KNOTT) = .true.
 
   call restart_game()
 
@@ -46,18 +53,18 @@ program main
   call set_texture_filter(game_font%texture, TEXTURE_FILTER_BILINEAR)
 
   do while (.not. window_should_close())
-     dt               = get_frame_time()
-     window_width_px  = get_render_width()
-     window_height_px = get_render_height()
+     dt = get_frame_time()
+     board_boundary_width  = get_render_width()/2
+     board_boundary_height = get_render_height()
 
-     if (window_width_px > window_height_px) then
-        board_size_px = window_height_px
-        board_x_px = real(window_width_px)/2 - board_size_px/2
+     if (board_boundary_width > board_boundary_height) then
+        board_size_px = board_boundary_height
+        board_x_px = real(board_boundary_width)/2 - board_size_px/2
         board_y_px = 0
      else
-        board_size_px = window_width_px
+        board_size_px = board_boundary_width
         board_x_px = 0
-        board_y_px = real(window_height_px)/2 - board_size_px/2
+        board_y_px = real(board_boundary_height)/2 - board_size_px/2
      end if
 
      cell_size_px = board_size_px/board_size_cl
@@ -72,10 +79,36 @@ program main
      case (STATE_TIE)
         call render_tie_state()
      end select
+
+     call render_ai_checkboxes(rectangle(board_boundary_width, 0, board_boundary_width, board_boundary_height))
      call end_drawing()
   end do
 
 contains
+  subroutine render_ai_checkboxes(boundary)
+    real,parameter :: checkbox_width_rl = 0.5
+    real,parameter :: checkbox_height_rl = 0.10
+    type(Rectangle),intent(in) :: boundary
+
+    type(Rectangle) :: cross_boundary, knott_boundary
+    real :: checkbox_height_px
+
+    checkbox_height_px = boundary%height*checkbox_height_rl
+
+    cross_boundary%x = boundary%x
+    cross_boundary%y = boundary%y + boundary%height/2 - checkbox_height_px
+    cross_boundary%width = boundary%width*checkbox_width_rl
+    cross_boundary%height = checkbox_height_px
+
+    knott_boundary%x = boundary%x
+    knott_boundary%y = boundary%y + boundary%height/2
+    knott_boundary%width = boundary%width*checkbox_width_rl
+    knott_boundary%height = checkbox_height_px
+
+    call checkbox(cross_checkbox_id,cross_boundary,ai_checkboxes(CELL_CROSS))
+    call checkbox(knott_checkbox_id,knott_boundary,ai_checkboxes(CELL_KNOTT))
+  end subroutine render_ai_checkboxes
+
   subroutine render_tie_state()
     implicit none
 
@@ -102,25 +135,7 @@ contains
 
     integer :: x_cl, y_cl, next_x_cl, next_y_cl
 
-    select case(current_player)
-    case (CELL_CROSS)
-       if (render_board_clickable(board_x_px, board_y_px, board_size_px, board, x_cl, y_cl)) then
-          board(x_cl, y_cl) = current_player
-          if (player_won(board, CELL_CROSS, final_line)) then
-             state = STATE_WON
-             return
-          end if
-          if (player_won(board, CELL_KNOTT, final_line)) then
-             state = STATE_WON
-             return
-          end if
-          if (board_full(board)) then
-             state = STATE_TIE
-             return
-          end if
-          current_player = 3 - current_player
-       end if
-    case (CELL_KNOTT)
+    if (ai_checkboxes(current_player)) then
        call render_board(board_x_px, board_y_px, board_size_px, board)
 
        if (.not. ai_next_move(board, current_player, next_x_cl, next_y_cl)) then
@@ -137,7 +152,24 @@ contains
        else
           state = STATE_TIE
        end if
-    end select
+    else
+       if (render_board_clickable(board_x_px, board_y_px, board_size_px, board, x_cl, y_cl)) then
+          board(x_cl, y_cl) = current_player
+          if (player_won(board, CELL_CROSS, final_line)) then
+             state = STATE_WON
+             return
+          end if
+          if (player_won(board, CELL_KNOTT, final_line)) then
+             state = STATE_WON
+             return
+          end if
+          if (board_full(board)) then
+             state = STATE_TIE
+             return
+          end if
+          current_player = 3 - current_player
+       end if
+    end if
   end subroutine render_game_state
 
   subroutine restart_game()
