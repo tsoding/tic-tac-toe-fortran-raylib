@@ -16,7 +16,6 @@ program main
   integer(c_int),     parameter :: screen_height_px       = 600
   integer(c_int),     parameter :: fps                    = 60
   integer(c_int32_t), parameter :: background_color       = color(z'FF181818')
-
   integer, parameter :: font_size = 69
 
   real    :: dt
@@ -67,6 +66,10 @@ program main
         board_y_px = real(board_boundary_height)/2 - board_size_px/2
      end if
 
+     board_x_px = board_x_px + board_size_px*board_margin_rl
+     board_y_px = board_y_px + board_size_px*board_margin_rl
+     board_size_px = board_size_px - board_size_px*board_margin_rl*2
+
      cell_size_px = board_size_px/board_size_cl
 
      call begin_drawing()
@@ -88,22 +91,24 @@ contains
   subroutine render_ai_checkboxes(boundary)
     real,parameter :: checkbox_width_rl = 0.5
     real,parameter :: checkbox_height_rl = 0.10
+    real,parameter :: checkbox_padding_rl = 0.05
     type(Rectangle),intent(in) :: boundary
 
     type(Rectangle) :: cross_boundary, knott_boundary
-    real :: checkbox_height_px
+    real :: checkbox_height_px, checkbox_padding_px
 
     checkbox_height_px = boundary%height*checkbox_height_rl
+    checkbox_padding_px = boundary%height*checkbox_padding_rl
 
-    cross_boundary%x = boundary%x
-    cross_boundary%y = boundary%y + boundary%height/2 - checkbox_height_px
     cross_boundary%width = boundary%width*checkbox_width_rl
     cross_boundary%height = checkbox_height_px
+    cross_boundary%x = boundary%x + boundary%width/2 - cross_boundary%width/2
+    cross_boundary%y = boundary%y + boundary%height/2 - checkbox_height_px - checkbox_padding_px*0.5
 
-    knott_boundary%x = boundary%x
-    knott_boundary%y = boundary%y + boundary%height/2
     knott_boundary%width = boundary%width*checkbox_width_rl
     knott_boundary%height = checkbox_height_px
+    knott_boundary%x = boundary%x + boundary%width/2 - knott_boundary%width/2
+    knott_boundary%y = boundary%y + boundary%height/2 + checkbox_padding_px*0.5
 
     call checkbox(cross_checkbox_id,cross_boundary,ai_checkboxes(CELL_CROSS))
     call checkbox(knott_checkbox_id,knott_boundary,ai_checkboxes(CELL_KNOTT))
