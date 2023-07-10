@@ -23,7 +23,7 @@ module ui
   integer(c_int32_t), parameter :: restart_button_color    = color(z'FFEEEEEE')
   integer(c_int32_t), parameter :: strikethrough_color     = color(z'FFEEEEEE')
   real,               parameter :: board_padding_rl        = 0.03
-  real,               parameter :: board_margin_rl         = 0.05
+  real,               parameter :: board_margin_rl         = 0.10
   real,               parameter :: restart_button_width_rl = 0.3
   type(Button_Style), parameter :: cell_button_style = Button_Style( &
        color = cell_color, &

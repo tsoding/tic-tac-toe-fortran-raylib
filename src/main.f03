@@ -12,8 +12,8 @@ program main
   ! - *_px - pixels
   ! - *_cl - cells
   ! - *_rl - relative (fraction of width, height, cell size, etc)
-  integer(c_int),     parameter :: screen_width_px        = 800
-  integer(c_int),     parameter :: screen_height_px       = 600
+  integer(c_int),     parameter :: screen_width_px        = 16*80
+  integer(c_int),     parameter :: screen_height_px       = 9*90
   integer(c_int),     parameter :: fps                    = 60
   integer(c_int32_t), parameter :: background_color       = color(z'FF181818')
   integer, parameter :: font_size = 69
