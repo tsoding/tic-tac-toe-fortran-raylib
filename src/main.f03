@@ -148,6 +148,10 @@ contains
              state = STATE_WON
              return
           end if
+          if (board_full(board)) then
+             state = STATE_TIE
+             return
+          end if
           current_player = 3 - current_player
        else
           state = STATE_TIE
