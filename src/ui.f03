@@ -103,56 +103,67 @@ contains
     end if
   end function button_logic
 
-  subroutine checkbox(id,boundary,state)
+  subroutine fit_square(boundary,x_px,y_px,s_px)
+    type(Rectangle),intent(in) :: boundary
+    real,intent(out) :: x_px, y_px, s_px
+    if (boundary%width < boundary%height) then
+       s_px = boundary%width
+       x_px = boundary%x
+       y_px = boundary%y + boundary%height/2 - boundary%width/2
+    else
+       s_px = boundary%height
+       x_px = boundary%x + boundary%width/2 - boundary%height/2
+       y_px = boundary%y
+    end if
+  end subroutine fit_square
+
+  subroutine checkbox(id,shape,boundary,state)
     implicit none
-    integer,intent(in) :: id
+    integer,intent(in) :: id, shape
     type(Rectangle),intent(in) :: boundary
     logical,intent(inout) :: state
 
     integer :: button_state
-    type(Rectangle) :: tick_boundary
+    real :: shape_x, shape_y, shape_s
+    real :: tick_x, tick_y, tick_s
 
-    tick_boundary%x = boundary%x
-    tick_boundary%y = boundary%y
-    tick_boundary%width = min(boundary%width, boundary%height)
-    tick_boundary%height = tick_boundary%width
+    integer(c_int32_t) :: color
+
+    tick_x = boundary%x
+    tick_y = boundary%y
+    if (boundary%width < boundary%height) then
+       tick_s = boundary%width
+       call fit_square(Rectangle(tick_x, tick_y + tick_s, boundary%width, boundary%height - tick_s), shape_x, shape_y, shape_s)
+    else
+       tick_s = boundary%height
+       call fit_square(Rectangle(tick_x + tick_s, tick_y, boundary%width - tick_s, boundary%height), shape_x, shape_y, shape_s)
+    end if
 
     if (button_logic(id, boundary, button_state)) then
        state = .not. state
     end if
 
+    select case (button_state)
+    case (BUTTON_UNPRESSED)
+       color = restart_button_color
+    case (BUTTON_HOVER)
+       color = color_brightness(restart_button_color, restart_button_style%hover)
+    case (BUTTON_HOLD)
+       color = color_brightness(restart_button_color, restart_button_style%hold)
+    end select
+
     if (state) then
-       select case (button_state)
-       case (BUTTON_UNPRESSED)
-          call draw_rectangle_rec(tick_boundary, restart_button_color)
-       case (BUTTON_HOVER)
-          call draw_rectangle_rec( &
-               tick_boundary, &
-               color_brightness(restart_button_color, restart_button_style%hover))
-       case (BUTTON_HOLD)
-          call draw_rectangle_rec( &
-               tick_boundary, &
-               color_brightness(restart_button_color, restart_button_style%hold))
-       end select
+       call draw_rectangle_rec(Rectangle(tick_x, tick_y, tick_s, tick_s), color)
     else
-       select case (button_state)
-       case (BUTTON_UNPRESSED)
-          call draw_rectangle_lines_ex( &
-               tick_boundary, &
-               checkbox_line_thickness_px, &
-               restart_button_color)
-       case (BUTTON_HOVER)
-          call draw_rectangle_lines_ex( &
-               tick_boundary, &
-               checkbox_line_thickness_px, &
-               color_brightness(restart_button_color, restart_button_style%hover))
-       case (BUTTON_HOLD)
-          call draw_rectangle_lines_ex( &
-               tick_boundary, &
-               checkbox_line_thickness_px, &
-               color_brightness(restart_button_color, restart_button_style%hold))
-       end select
+       call draw_rectangle_lines_ex(Rectangle(tick_x, tick_y, tick_s, tick_s), checkbox_line_thickness_px, color)
     end if
+
+    select case (shape)
+    case (CELL_CROSS)
+       call cross(shape_x, shape_y, shape_s)
+    case (CELL_KNOTT)
+       call knot(shape_x, shape_y, shape_s)
+    end select
   end subroutine checkbox
 
   function button(id,boundary,style) result(clicked)
@@ -183,13 +194,11 @@ contains
     clicked = button(id, rectangle(x_px, y_px, s_px, s_px), cell_button_style)
   end function empty_cell_clickable
 
-  subroutine knot_cell(x_px,y_px,s_px)
+  subroutine knot(x_px,y_px,s_px)
     implicit none
     real :: x_px, y_px, s_px
     type(Vector2) :: center
     real :: thick, pad
-
-    call empty_cell(x_px, y_px, s_px, cell_color);
 
     thick = s_px*0.2
     pad = s_px*0.2
@@ -197,16 +206,22 @@ contains
     center%x = x_px + s_px/2
     center%y = y_px + s_px/2
     call draw_ring(center, (s_px - pad)/2 - thick, (s_px - pad)/2, 0.0, 360.0, 100, knot_color)
+  end subroutine knot
+
+  subroutine knot_cell(x_px,y_px,s_px)
+    implicit none
+    real :: x_px, y_px, s_px
+
+    call empty_cell(x_px, y_px, s_px, cell_color)
+    call knot(x_px, y_px, s_px)
   end subroutine knot_cell
 
-  subroutine cross_cell(x_px,y_px,s_px)
+  subroutine cross(x_px,y_px,s_px)
     implicit none
     real :: x_px, y_px, s_px
     type(Vector2) :: startPos
     type(Vector2) :: endPos
     real :: thick, pad
-
-    call empty_cell(x_px, y_px, s_px, cell_color)
 
     thick = s_px*0.2
     pad = s_px*0.2
@@ -222,6 +237,13 @@ contains
     endPos%x   = x_px + pad
     endPos%y   = y_px + s_px - pad
     call draw_line_ex(startPos, endPos, thick, cross_color)
+  end subroutine cross
+
+  subroutine cross_cell(x_px,y_px,s_px)
+    implicit none
+    real :: x_px, y_px, s_px
+    call empty_cell(x_px, y_px, s_px, cell_color)
+    call cross(x_px, y_px, s_px)
   end subroutine cross_cell
 
   subroutine render_board(board_x_px, board_y_px, board_size_px, board)

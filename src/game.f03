@@ -3,9 +3,11 @@ module game
 
   integer, parameter :: board_size_cl = 3
 
-  integer, parameter :: CELL_EMPTY = 0
-  integer, parameter :: CELL_CROSS = 1
-  integer, parameter :: CELL_KNOTT = 2
+  enum, bind(C)
+     enumerator :: CELL_EMPTY = 0
+     enumerator :: CELL_CROSS
+     enumerator :: CELL_KNOTT
+  end enum
 
   type :: TLine
      integer :: x, y, dx, dy

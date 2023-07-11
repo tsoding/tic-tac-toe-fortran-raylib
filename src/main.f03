@@ -16,7 +16,7 @@ program main
   integer(c_int),     parameter :: screen_height_px       = 9*90
   integer(c_int),     parameter :: fps                    = 60
   integer(c_int32_t), parameter :: background_color       = color(z'FF181818')
-  integer, parameter :: font_size = 69
+  integer, parameter :: font_size = 128
 
   real    :: dt
   ! integer :: window_width_px, window_height_px
@@ -89,13 +89,14 @@ program main
 
 contains
   subroutine render_ai_checkboxes(boundary)
-    real,parameter :: checkbox_width_rl = 0.6
+    real,parameter :: checkbox_width_rl = 0.45
     real,parameter :: checkbox_height_rl = 0.10
     real,parameter :: checkbox_padding_rl = 0.05
     type(Rectangle),intent(in) :: boundary
 
     type(Rectangle) :: cross_boundary, knott_boundary
     real :: checkbox_height_px, checkbox_padding_px
+    type(Vector2) :: text_pos, text_size
 
     checkbox_height_px = boundary%height*checkbox_height_rl
     checkbox_padding_px = boundary%height*checkbox_padding_rl
@@ -110,8 +111,15 @@ contains
     knott_boundary%x = boundary%x + boundary%width/2 - knott_boundary%width/2
     knott_boundary%y = boundary%y + boundary%height/2 + checkbox_padding_px*0.5
 
-    call checkbox(cross_checkbox_id,cross_boundary,ai_checkboxes(CELL_CROSS))
-    call checkbox(knott_checkbox_id,knott_boundary,ai_checkboxes(CELL_KNOTT))
+    text_size = measure_text_ex(game_font, "AI"//C_NULL_CHAR, checkbox_height_px, 0.0)
+    text_pos = Vector2( &
+         cross_boundary%x, &
+         ! cross_boundary%x + cross_boundary%width/2 - text_size%x/2, &
+         cross_boundary%y - checkbox_height_px - checkbox_padding_px)
+    call draw_text_ex(game_font, "AI"//C_NULL_CHAR, text_pos,checkbox_height_px, 0.0, restart_button_color)
+
+    call checkbox(cross_checkbox_id,CELL_CROSS,cross_boundary,ai_checkboxes(CELL_CROSS))
+    call checkbox(knott_checkbox_id,CELL_KNOTT,knott_boundary,ai_checkboxes(CELL_KNOTT))
   end subroutine render_ai_checkboxes
 
   subroutine render_tie_state()
