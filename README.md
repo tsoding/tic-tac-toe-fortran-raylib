@@ -1,6 +1,6 @@
 # Tic-Tac-Toe in Fortran with Raylib
 
-![thumbnail](./thumbnail.png)
+![demo](./demo.mp4)
 
 ## Quick Start
 

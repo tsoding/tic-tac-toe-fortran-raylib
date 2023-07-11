@@ -341,7 +341,7 @@ contains
 
     cell_size_px = board_size_px/board_size_cl
 
-    thick = cell_size_px*0.2
+    thick = cell_size_px*0.1
     call map_tline_on_screen(final_line, board_x_px, board_y_px, board_size_px, startPos, endPos)
     call draw_line_ex(startPos, endPos, thick, strikethrough_color)
   end subroutine strikethrough

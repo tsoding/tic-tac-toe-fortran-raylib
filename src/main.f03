@@ -20,17 +20,18 @@ program main
   ! - *_cl - cells
   ! - *_rl - relative (fraction of width, height, cell size, etc)
   integer(c_int),     parameter :: screen_width_px        = 16*80
-  integer(c_int),     parameter :: screen_height_px       = 9*90
+  integer(c_int),     parameter :: screen_height_px       = 9*80
   integer(c_int),     parameter :: fps                    = 60
   integer(c_int32_t), parameter :: background_color       = color(z'FF181818')
   integer, parameter :: font_size = 128
 
-  real, parameter :: particle_min_mag = 150.0
-  real, parameter :: particle_max_mag = 200.0
-  real, parameter :: particle_min_size = 5.0
-  real, parameter :: particle_max_size = 15.0
-  real, parameter :: particle_min_lt = 1.0
-  real, parameter :: particle_max_lt = 1.0
+  real,    parameter :: particle_min_mag      = 50.0
+  real,    parameter :: particle_max_mag      = 400.0
+  real,    parameter :: particle_min_size     = 2.0
+  real,    parameter :: particle_max_size     = 5.0
+  real,    parameter :: particle_min_lt       = 0.5
+  real,    parameter :: particle_max_lt       = 0.8
+  integer, parameter :: particles_burst_count = 100
 
   real    :: dt
   ! integer :: window_width_px, window_height_px
@@ -204,7 +205,7 @@ contains
     do i=1,size(particles)
        p = particles(i)
        if (p%lt_t > 0.0) then
-          ! particles(i)%velocity = vector2_add(p%velocity, vector2_scale(Vector2(0, 1000), dt))
+          particles(i)%velocity = vector2_scale(p%velocity, 0.98)
           particles(i)%position = vector2_add(p%position, vector2_scale(particles(i)%velocity, dt))
           particles(i)%lt_t = (p%lt_t*p%lt_sec - dt)/p%lt_sec
           call draw_circle_v(p%position, p%size, color_alpha(p%color, p%lt_t))
@@ -281,31 +282,30 @@ contains
 
        if (.not. ai_next_move(board, current_player, x_cl, y_cl)) then
           board(x_cl, y_cl) = current_player
-          call spawn_random_particles_in_region( &
-               Rectangle(board_x_px + (x_cl - 1)*board_cell_size,   &
-                         board_y_px + (y_cl - 1)*board_cell_size,   &
-                         board_cell_size,        &
-                         board_cell_size),       &
-               10,                               &
-               shape_colors(current_player))
-
           if (player_won(board, CELL_CROSS, final_line)) then
              state = STATE_WON
              call map_tline_on_screen(final_line, board_x_px, board_y_px, board_size_px, start, end)
-             call spawn_random_particles_along_line(start, end, 20, strikethrough_color)
+             call spawn_random_particles_along_line(start, end, particles_burst_count*3, strikethrough_color)
              return
           end if
           if (player_won(board, CELL_KNOTT, final_line)) then
              state = STATE_WON
              call map_tline_on_screen(final_line, board_x_px, board_y_px, board_size_px, start, end)
-             call spawn_random_particles_along_line(start, end, 20, strikethrough_color)
+             call spawn_random_particles_along_line(start, end, particles_burst_count*3, strikethrough_color)
              return
           end if
+          call spawn_random_particles_in_region( &
+               Rectangle(board_x_px + (x_cl - 1)*board_cell_size,   &
+                         board_y_px + (y_cl - 1)*board_cell_size,   &
+                         board_cell_size,        &
+                         board_cell_size),       &
+               particles_burst_count,                               &
+               shape_colors(current_player))
+          current_player = 3 - current_player
           if (board_full(board)) then
              state = STATE_TIE
              return
           end if
-          current_player = 3 - current_player
        else
           state = STATE_TIE
           return
@@ -313,30 +313,30 @@ contains
     else
        if (render_board_clickable(board_x_px, board_y_px, board_size_px, board, x_cl, y_cl)) then
           board(x_cl, y_cl) = current_player
-          call spawn_random_particles_in_region( &
-               Rectangle(board_x_px + (x_cl - 1)*board_cell_size,   &
-                         board_y_px + (y_cl - 1)*board_cell_size,   &
-                         board_cell_size,        &
-                         board_cell_size),       &
-               10,                               &
-               shape_colors(current_player))
           if (player_won(board, CELL_CROSS, final_line)) then
              state = STATE_WON
              call map_tline_on_screen(final_line, board_x_px, board_y_px, board_size_px, start, end)
-             call spawn_random_particles_along_line(start, end, 20, strikethrough_color)
+             call spawn_random_particles_along_line(start, end, particles_burst_count*3, strikethrough_color)
              return
           end if
           if (player_won(board, CELL_KNOTT, final_line)) then
              state = STATE_WON
              call map_tline_on_screen(final_line, board_x_px, board_y_px, board_size_px, start, end)
-             call spawn_random_particles_along_line(start, end, 20, strikethrough_color)
+             call spawn_random_particles_along_line(start, end, particles_burst_count*3, strikethrough_color)
              return
           end if
+          call spawn_random_particles_in_region( &
+               Rectangle(board_x_px + (x_cl - 1)*board_cell_size,   &
+                         board_y_px + (y_cl - 1)*board_cell_size,   &
+                         board_cell_size,        &
+                         board_cell_size),       &
+               particles_burst_count,                       &
+               shape_colors(current_player))
+          current_player = 3 - current_player
           if (board_full(board)) then
              state = STATE_TIE
              return
           end if
-          current_player = 3 - current_player
        end if
     end if
   end subroutine render_game_state
