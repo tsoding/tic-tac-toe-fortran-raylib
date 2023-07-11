@@ -59,9 +59,9 @@ contains
 
     clicked = button(restart_button_id, rec, restart_button_style)
 
-    text_size = measure_text_ex(button_font, "Restart"//C_NULL_CHAR, rec%height*0.4, 0.0)
+    text_size = measure_text_ex(button_font, "Restart"//C_NULL_CHAR, rec%height*0.45, 0.0)
     text_pos = Vector2(rec%x + rec%width/2 - text_size%x/2, rec%y + rec%height/2 - text_size%y/2)
-    call draw_text_ex(button_font, "Restart"//C_NULL_CHAR, text_pos, rec%height*0.4, 0.0, BLACK)
+    call draw_text_ex(button_font, "Restart"//C_NULL_CHAR, text_pos, rec%height*0.45, 0.0, BLACK)
   end function restart_button
 
   subroutine empty_cell(x_px, y_px, s_px, color)
@@ -110,6 +110,12 @@ contains
     logical,intent(inout) :: state
 
     integer :: button_state
+    type(Rectangle) :: tick_boundary
+
+    tick_boundary%x = boundary%x
+    tick_boundary%y = boundary%y
+    tick_boundary%width = min(boundary%width, boundary%height)
+    tick_boundary%height = tick_boundary%width
 
     if (button_logic(id, boundary, button_state)) then
        state = .not. state
@@ -118,31 +124,31 @@ contains
     if (state) then
        select case (button_state)
        case (BUTTON_UNPRESSED)
-          call draw_rectangle_rec(boundary, restart_button_color)
+          call draw_rectangle_rec(tick_boundary, restart_button_color)
        case (BUTTON_HOVER)
           call draw_rectangle_rec( &
-               boundary, &
+               tick_boundary, &
                color_brightness(restart_button_color, restart_button_style%hover))
        case (BUTTON_HOLD)
           call draw_rectangle_rec( &
-               boundary, &
+               tick_boundary, &
                color_brightness(restart_button_color, restart_button_style%hold))
        end select
     else
        select case (button_state)
        case (BUTTON_UNPRESSED)
           call draw_rectangle_lines_ex( &
-               boundary, &
+               tick_boundary, &
                checkbox_line_thickness_px, &
                restart_button_color)
        case (BUTTON_HOVER)
           call draw_rectangle_lines_ex( &
-               boundary, &
+               tick_boundary, &
                checkbox_line_thickness_px, &
                color_brightness(restart_button_color, restart_button_style%hover))
        case (BUTTON_HOLD)
           call draw_rectangle_lines_ex( &
-               boundary, &
+               tick_boundary, &
                checkbox_line_thickness_px, &
                color_brightness(restart_button_color, restart_button_style%hold))
        end select

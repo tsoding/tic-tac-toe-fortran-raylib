@@ -53,7 +53,7 @@ program main
 
   do while (.not. window_should_close())
      dt = get_frame_time()
-     board_boundary_width  = get_render_width()/2
+     board_boundary_width  = get_render_width()*2/3
      board_boundary_height = get_render_height()
 
      if (board_boundary_width > board_boundary_height) then
@@ -83,13 +83,13 @@ program main
         call render_tie_state()
      end select
 
-     call render_ai_checkboxes(rectangle(board_boundary_width, 0, board_boundary_width, board_boundary_height))
+     call render_ai_checkboxes(rectangle(board_boundary_width, 0, get_render_width() - board_boundary_width, board_boundary_height))
      call end_drawing()
   end do
 
 contains
   subroutine render_ai_checkboxes(boundary)
-    real,parameter :: checkbox_width_rl = 0.5
+    real,parameter :: checkbox_width_rl = 0.6
     real,parameter :: checkbox_height_rl = 0.10
     real,parameter :: checkbox_padding_rl = 0.05
     type(Rectangle),intent(in) :: boundary
