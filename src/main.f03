@@ -3,10 +3,17 @@
 program main
   use iso_c_binding, only: c_int, c_int32_t, C_NULL_CHAR, C_NULL_PTR
   use raylib
+  use raymath
   use game
   use ai
   use ui
   implicit none
+
+  type :: Particle
+     type(Vector2) :: position, velocity
+     integer(c_int32_t) :: color
+     real :: size, lt_sec, lt_t
+  end type Particle
 
   ! Measure units:
   ! - *_px - pixels
@@ -18,6 +25,13 @@ program main
   integer(c_int32_t), parameter :: background_color       = color(z'FF181818')
   integer, parameter :: font_size = 128
 
+  real, parameter :: particle_min_mag = 150.0
+  real, parameter :: particle_max_mag = 200.0
+  real, parameter :: particle_min_size = 5.0
+  real, parameter :: particle_max_size = 15.0
+  real, parameter :: particle_min_lt = 1.0
+  real, parameter :: particle_max_lt = 1.0
+
   real    :: dt
   ! integer :: window_width_px, window_height_px
   real    :: board_x_px, board_y_px, board_boundary_width, board_boundary_height, board_size_px, cell_size_px
@@ -28,8 +42,10 @@ program main
   type(TLine) :: final_line
   integer :: state
   type(Font) :: game_font
+  type(Particle) :: particles(1000)
 
   logical, dimension(2) :: ai_checkboxes
+  integer :: i
 
   enum, bind(C)
      enumerator :: STATE_GAME = 0
@@ -39,6 +55,9 @@ program main
 
   ai_checkboxes(CELL_CROSS) = .false.
   ai_checkboxes(CELL_KNOTT) = .true.
+  do i=1,size(particles)
+     particles(i)%lt_t = 0.0
+  end do
 
   call restart_game()
 
@@ -84,10 +103,115 @@ program main
      end select
 
      call render_ai_checkboxes(rectangle(board_boundary_width, 0, get_render_width() - board_boundary_width, board_boundary_height))
+     call render_particles(dt)
      call end_drawing()
   end do
 
 contains
+  pure function lerp(a, b, t) result(c)
+    implicit none
+    real, intent(in) :: a, b, t
+    real :: c
+    c = a + (b - a)*t
+  end function lerp
+
+  subroutine spawn_random_particles_along_line(start, end, count, color)
+    type(Vector2),intent(in) :: start, end
+    integer, intent(in) :: count
+    integer(c_int32_t),intent(in) :: color
+
+    type(Vector2) :: position
+    real :: t, len
+    integer :: i
+
+    do i=1,count
+       call random_number(t)
+       position = vector2_lerp(start, end, t)
+       call spawn_random_particle_at(position, color)
+    end do
+  end subroutine spawn_random_particles_along_line
+
+  subroutine spawn_random_particles_in_region(region, count, color)
+    implicit none
+    type(Rectangle),intent(in) :: region
+    integer,intent(in) :: count
+    integer(c_int32_t),intent(in) :: color
+
+    type(Vector2) :: position
+    real :: t
+    integer :: i
+
+    do i=1,count
+       call random_number(t)
+       position%x = lerp(region%x, region%x + region%width, t)
+       call random_number(t)
+       position%y = lerp(region%y, region%y + region%width, t)
+       call spawn_random_particle_at(position, color)
+    end do
+  end subroutine spawn_random_particles_in_region
+
+  subroutine spawn_random_particle_at(position,color)
+    implicit none
+    type(Vector2),intent(in) :: position
+    integer(c_int32_t),intent(in) :: color
+
+    type(Particle) :: p
+    real :: angle, mag, t
+    real, parameter :: pi = 4.D0*DATAN(1.D0)
+
+    p%position = position
+
+    call random_number(t)
+    angle = lerp(0.0, 2.0*pi, t)
+
+    call random_number(t)
+    mag = lerp(particle_min_mag, particle_max_mag, t)
+    p%velocity = Vector2(cos(angle)*mag, sin(angle)*mag)
+
+    p%color = color
+
+    call random_number(t)
+    p%size = lerp(particle_min_size, particle_max_size, t)
+
+    call random_number(t)
+    p%lt_sec = lerp(particle_min_lt, particle_max_lt, t)
+    p%lt_t = 1.0
+
+    call spawn_particle(p)
+  end subroutine spawn_random_particle_at
+  
+  subroutine spawn_particle(p)
+    implicit none
+    type(Particle),intent(in) :: p
+    type(Particle) :: pi
+    integer :: i
+
+    do i=1,size(particles)
+       pi = particles(i)
+       if (pi%lt_t <= 0.0) then
+          particles(i) = p
+          return
+       end if
+    end do
+  end subroutine spawn_particle
+
+  subroutine render_particles(dt)
+    implicit none
+    real,intent(in) :: dt
+    type(Particle) :: p
+    integer :: i
+
+    do i=1,size(particles)
+       p = particles(i)
+       if (p%lt_t > 0.0) then
+          ! particles(i)%velocity = vector2_add(p%velocity, vector2_scale(Vector2(0, 1000), dt))
+          particles(i)%position = vector2_add(p%position, vector2_scale(particles(i)%velocity, dt))
+          particles(i)%lt_t = (p%lt_t*p%lt_sec - dt)/p%lt_sec
+          call draw_circle_v(p%position, p%size, color_alpha(p%color, p%lt_t))
+       end if
+    end do
+  end subroutine render_particles
+
   subroutine render_ai_checkboxes(boundary)
     real,parameter :: checkbox_width_rl = 0.45
     real,parameter :: checkbox_height_rl = 0.10
@@ -146,19 +270,35 @@ contains
   subroutine render_game_state()
     implicit none
 
-    integer :: x_cl, y_cl, next_x_cl, next_y_cl
+    integer :: x_cl, y_cl
+    real :: board_cell_size
+    type(Vector2) :: start, end
+
+    board_cell_size = board_size_px/board_size_cl
 
     if (ai_checkboxes(current_player)) then
        call render_board(board_x_px, board_y_px, board_size_px, board)
 
-       if (.not. ai_next_move(board, current_player, next_x_cl, next_y_cl)) then
-          board(next_x_cl, next_y_cl) = current_player
+       if (.not. ai_next_move(board, current_player, x_cl, y_cl)) then
+          board(x_cl, y_cl) = current_player
+          call spawn_random_particles_in_region( &
+               Rectangle(board_x_px + (x_cl - 1)*board_cell_size,   &
+                         board_y_px + (y_cl - 1)*board_cell_size,   &
+                         board_cell_size,        &
+                         board_cell_size),       &
+               10,                               &
+               shape_colors(current_player))
+
           if (player_won(board, CELL_CROSS, final_line)) then
              state = STATE_WON
+             call map_tline_on_screen(final_line, board_x_px, board_y_px, board_size_px, start, end)
+             call spawn_random_particles_along_line(start, end, 20, strikethrough_color)
              return
           end if
           if (player_won(board, CELL_KNOTT, final_line)) then
              state = STATE_WON
+             call map_tline_on_screen(final_line, board_x_px, board_y_px, board_size_px, start, end)
+             call spawn_random_particles_along_line(start, end, 20, strikethrough_color)
              return
           end if
           if (board_full(board)) then
@@ -168,16 +308,28 @@ contains
           current_player = 3 - current_player
        else
           state = STATE_TIE
+          return
        end if
     else
        if (render_board_clickable(board_x_px, board_y_px, board_size_px, board, x_cl, y_cl)) then
           board(x_cl, y_cl) = current_player
+          call spawn_random_particles_in_region( &
+               Rectangle(board_x_px + (x_cl - 1)*board_cell_size,   &
+                         board_y_px + (y_cl - 1)*board_cell_size,   &
+                         board_cell_size,        &
+                         board_cell_size),       &
+               10,                               &
+               shape_colors(current_player))
           if (player_won(board, CELL_CROSS, final_line)) then
              state = STATE_WON
+             call map_tline_on_screen(final_line, board_x_px, board_y_px, board_size_px, start, end)
+             call spawn_random_particles_along_line(start, end, 20, strikethrough_color)
              return
           end if
           if (player_won(board, CELL_KNOTT, final_line)) then
              state = STATE_WON
+             call map_tline_on_screen(final_line, board_x_px, board_y_px, board_size_px, start, end)
+             call spawn_random_particles_along_line(start, end, 20, strikethrough_color)
              return
           end if
           if (board_full(board)) then

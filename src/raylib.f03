@@ -2,10 +2,8 @@
 
 module raylib
   use iso_c_binding, only: c_int32_t, c_char, c_int, c_bool, c_float, c_ptr
+  use raymath
   implicit none
-  type, bind(C) :: Vector2
-     real(c_float) :: x, y
-  end type Vector2
 
   ! typedef struct Texture {
   !   unsigned int id;        // OpenGL texture id
@@ -130,6 +128,7 @@ module raylib
        integer(c_int32_t),value :: color
      end subroutine draw_line_ex
 
+     ! RLAPI void DrawRing(Vector2 center, float innerRadius, float outerRadius, float startAngle, float endAngle, int segments, Color color); // Draw ring
      subroutine draw_ring(center,innerRadius,outerRadius,startAngle,endAngle,segments,color) bind(C, name="DrawRing")
        use iso_c_binding, only: c_float, c_int, c_int32_t
        import :: Vector2
@@ -141,6 +140,15 @@ module raylib
        integer(c_int),value     :: segments
        integer(c_int32_t),value :: color
      end subroutine draw_ring
+
+     ! RLAPI void DrawCircleV(Vector2 center, float radius, Color color);                                       // Draw a color-filled circle (Vector version)
+     subroutine draw_circle_v(center, radius, color) bind(C, name="DrawCircleV")
+       use iso_c_binding, only: c_float, c_int32_t
+       import :: Vector2
+       type(Vector2), value     :: center
+       real(c_float), value     :: radius
+       integer(c_int32_t), value:: color
+     end subroutine draw_circle_v
 
      logical(c_bool) function is_mouse_button_pressed(button) bind(C, name="IsMouseButtonPressed")
        use iso_c_binding, only: c_int, c_bool
@@ -231,6 +239,13 @@ module raylib
        integer(c_int32_t), value :: color
        real(c_float), value :: factor
      end function color_brightness
+
+     !RLAPI Color ColorAlpha(Color color, float alpha);                           // Get color with alpha applied, alpha goes from 0.0f to 1.0f
+     integer(c_int32_t) function color_alpha(color, alpha) bind(C, name="ColorAlpha")
+       use iso_c_binding, only: c_float, c_int32_t
+       integer(c_int32_t), value :: color
+       real(c_float), value :: alpha
+     end function color_alpha
 
      ! RLAPI void SetTextureFilter(Texture2D texture, int filter);                                              // Set texture scaling filter mode
      subroutine set_texture_filter(input_texture, filter) bind(C, name="SetTextureFilter")
