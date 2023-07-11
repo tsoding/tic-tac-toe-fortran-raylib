@@ -197,7 +197,6 @@ contains
 end program
 
 ! # Roadmap
-! - TODO: togglable AI (some sort of checkboxes on the side)
 ! - TODO: particle effects on placing the shapes
 ! - TODO: sound effects on placing the shapes and game over
 ! - TODO: customizable board size
