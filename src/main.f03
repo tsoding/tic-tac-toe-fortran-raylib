@@ -68,6 +68,7 @@ program main
   call set_target_fps(fps)
 
   ! TODO: set the working directory to where the executable is located
+  ! This is needed to be able to locate the assets properly
   game_font = load_font_ex("./fonts/Alegreya-Regular.ttf"//C_NULL_CHAR, font_size, C_NULL_PTR, 0)
   call set_texture_filter(game_font%texture, TEXTURE_FILTER_BILINEAR)
 
