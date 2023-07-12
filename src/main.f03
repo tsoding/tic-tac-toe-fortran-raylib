@@ -349,7 +349,6 @@ contains
 end program
 
 ! # Roadmap
-! - TODO: particle effects on placing the shapes
 ! - TODO: sound effects on placing the shapes and game over
 ! - TODO: customizable board size
 ! - TODO: accessibility: control via keyboard
