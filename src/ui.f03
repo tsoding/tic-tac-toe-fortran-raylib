@@ -1,5 +1,3 @@
-#include "macros.h"
-
 module ui
   use iso_c_binding, only: c_null_char, c_int32_t
   use raylib
@@ -17,12 +15,12 @@ module ui
      enumerator :: BUTTON_HOLD
   end enum
 
-  integer(c_int32_t), parameter :: cell_color              = color(z'FF252525')
-  integer(c_int32_t), parameter :: knot_color              = color(z'FF3030F0')
-  integer(c_int32_t), parameter :: cross_color             = color(z'FF30F060')
+  integer(c_int32_t), parameter :: cell_color              = int(z'FF252525', c_int32_t)
+  integer(c_int32_t), parameter :: knot_color              = int(z'FF3030F0', c_int32_t)
+  integer(c_int32_t), parameter :: cross_color             = int(z'FF30F060', c_int32_t)
   integer(c_int32_t), parameter :: shape_colors(2)         = [cross_color, knot_color]
-  integer(c_int32_t), parameter :: restart_button_color    = color(z'FFEEEEEE')
-  integer(c_int32_t), parameter :: strikethrough_color     = color(z'FFEEEEEE')
+  integer(c_int32_t), parameter :: restart_button_color    = int(z'FFEEEEEE', c_int32_t)
+  integer(c_int32_t), parameter :: strikethrough_color     = int(z'FFEEEEEE', c_int32_t)
   real,               parameter :: board_padding_rl        = 0.03
   real,               parameter :: board_margin_rl         = 0.10
   real,               parameter :: restart_button_width_rl = 0.3

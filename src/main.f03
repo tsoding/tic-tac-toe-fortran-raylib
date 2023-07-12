@@ -1,5 +1,3 @@
-#include "macros.h"
-
 program main
   use iso_c_binding, only: c_int, c_int32_t, C_NULL_CHAR, C_NULL_PTR
   use raylib
@@ -22,7 +20,7 @@ program main
   integer(c_int),     parameter :: screen_width_px        = 16*80
   integer(c_int),     parameter :: screen_height_px       = 9*80
   integer(c_int),     parameter :: fps                    = 60
-  integer(c_int32_t), parameter :: background_color       = color(z'FF181818')
+  integer(c_int32_t), parameter :: background_color       = int(z'FF181818', c_int32_t)
   integer, parameter :: font_size = 128
 
   ! TODO: the particles don't scale properly when the window is resized

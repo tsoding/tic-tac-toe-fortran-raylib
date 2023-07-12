@@ -1,5 +1,3 @@
-#include "macros.h"
-
 module raylib
   use iso_c_binding, only: c_int32_t, c_char, c_int, c_bool, c_float, c_ptr
   use raymath
@@ -43,15 +41,15 @@ module raylib
 
   ! TODO: use the Raylib colors
   integer(c_int32_t), parameter :: BLANK = 0
-  integer(c_int32_t), parameter :: BLACK = color(z'FF000000')
-  integer(c_int32_t), parameter :: WHITE = color(z'FFFFFFFF')
-  integer(c_int32_t), parameter :: RED   = color(z'FF0000FF')
-  integer(c_int32_t), parameter :: GREEN = color(z'FF00FF00')
-  integer(c_int32_t), parameter :: BLUE  = color(z'FFFF0000')
+  integer(c_int32_t), parameter :: BLACK = int(z'FF000000', c_int32_t)
+  integer(c_int32_t), parameter :: WHITE = int(z'FFFFFFFF', c_int32_t)
+  integer(c_int32_t), parameter :: RED   = int(z'FF0000FF', c_int32_t)
+  integer(c_int32_t), parameter :: GREEN = int(z'FF00FF00', c_int32_t)
+  integer(c_int32_t), parameter :: BLUE  = int(z'FFFF0000', c_int32_t)
   integer(c_int32_t), parameter :: MOUSE_BUTTON_LEFT = 0
 
-  integer(c_int32_t), parameter :: FLAG_WINDOW_RESIZABLE = hex32(z'00000004')
-  integer(c_int32_t), parameter :: FLAG_MSAA_4X_HINT     = hex32(z'00000020')
+  integer(c_int32_t), parameter :: FLAG_WINDOW_RESIZABLE = int(z'00000004', c_int32_t)
+  integer(c_int32_t), parameter :: FLAG_MSAA_4X_HINT     = int(z'00000020', c_int32_t)
 
   ! TODO: Define a proper enumeration for TextureFilter.
   ! I heard Fortran had something for simulating C enumerations
