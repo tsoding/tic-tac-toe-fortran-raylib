@@ -25,6 +25,7 @@ program main
   integer(c_int32_t), parameter :: background_color       = color(z'FF181818')
   integer, parameter :: font_size = 128
 
+  ! TODO: the particles don't scale properly when the window is resized
   real,    parameter :: particle_min_mag      = 50.0
   real,    parameter :: particle_max_mag      = 400.0
   real,    parameter :: particle_min_size     = 2.0
@@ -34,7 +35,6 @@ program main
   integer, parameter :: particles_burst_count = 100
 
   real    :: dt
-  ! integer :: window_width_px, window_height_px
   real    :: board_x_px, board_y_px, board_boundary_width, board_boundary_height, board_size_px, cell_size_px
 
   integer,dimension(board_size_cl, board_size_cl) :: board
