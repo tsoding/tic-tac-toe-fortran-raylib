@@ -28,6 +28,7 @@
 ! Speed up ideas to try:
 ! - memoization
 ! - limit the depth of recursion
+! - alpha-beta pruning
 module ai
   use game
   implicit none
