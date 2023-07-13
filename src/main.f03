@@ -23,8 +23,8 @@ program main
 
   real,    parameter :: particle_min_mag      = 50.0
   real,    parameter :: particle_max_mag      = 400.0
-  real,    parameter :: particle_min_size     = 3.0
-  real,    parameter :: particle_max_size     = 6.0
+  real,    parameter :: particle_min_size     = 2.0
+  real,    parameter :: particle_max_size     = 5.0
   real,    parameter :: particle_min_lt       = 0.5
   real,    parameter :: particle_max_lt       = 0.8
   integer, parameter :: particles_burst_count = 100
