@@ -214,7 +214,6 @@ contains
     type(Particle) :: p
     integer :: i
 
-    ! TODO: after introducing post-processing step the particles are becoming darker when faded away
     do i=1,size(particles)
        p = particles(i)
        if (p%lt_t > 0.0) then
