@@ -17,8 +17,6 @@ program main
   ! - *_px - pixels
   ! - *_cl - cells
   ! - *_rl - relative (fraction of width, height, cell size, etc)
-  integer(c_int),     parameter :: screen_width_px        = 16*80
-  integer(c_int),     parameter :: screen_height_px       = 9*80
   integer(c_int),     parameter :: fps                    = 60
   integer(c_int32_t), parameter :: background_color       = int(z'FF181818', c_int32_t)
   integer, parameter :: font_size = 128
@@ -41,6 +39,8 @@ program main
   integer :: state
   type(Font) :: game_font
   type(Particle) :: particles(1000)
+  type(RenderTexture) :: backframe
+  type(Shader) :: backframe_shader
 
   logical, dimension(2) :: ai_checkboxes
   integer :: i
@@ -61,8 +61,13 @@ program main
 
   call set_config_flags(FLAG_WINDOW_RESIZABLE)
   call set_config_flags(FLAG_MSAA_4X_HINT)
-  call init_window(screen_width_px, screen_height_px, "Fortran GOTY"//C_NULL_CHAR)
+  call init_window(16*80, 9*80, "Fortran GOTY"//C_NULL_CHAR)
   call set_target_fps(fps)
+
+  ! TODO: switching to backframe rendering removed anti-aliasing for some reason
+  backframe = load_render_texture(screen_width_px, screen_height_px)
+  call set_texture_filter(backframe%texture, TEXTURE_FILTER_BILINEAR)
+  backframe_shader = load_shader(C_NULL_CHAR, "./shaders/backframe.fs"//C_NULL_CHAR)
 
   ! TODO: set the working directory to where the executable is located
   ! This is needed to be able to locate the assets properly
@@ -70,9 +75,13 @@ program main
   call set_texture_filter(game_font%texture, TEXTURE_FILTER_BILINEAR)
 
   do while (.not. window_should_close())
+     call fit_screen_into_window()
+     call begin_texture_mode(backframe)
+     call clear_background(background_color)
+
      dt = get_frame_time()
-     board_boundary_width  = get_render_width()*2/3
-     board_boundary_height = get_render_height()
+     board_boundary_width  = screen_width_px*2/3
+     board_boundary_height = screen_height_px
 
      if (board_boundary_width > board_boundary_height) then
         board_size_px = board_boundary_height
@@ -90,8 +99,6 @@ program main
 
      cell_size_px = board_size_px/board_size_cl
 
-     call begin_drawing()
-     call clear_background(background_color)
      select case (state)
      case (STATE_GAME)
         call render_game_state()
@@ -101,8 +108,15 @@ program main
         call render_tie_state()
      end select
 
-     call render_ai_checkboxes(rectangle(board_boundary_width, 0, get_render_width() - board_boundary_width, board_boundary_height))
+     call render_ai_checkboxes(rectangle(board_boundary_width, 0, screen_width_px - board_boundary_width, board_boundary_height))
      call render_particles(dt)
+     call end_texture_mode()
+
+     call begin_drawing()
+         call clear_background(background_color)
+         call begin_shader_mode(backframe_shader)
+         call draw_texture_ex(backframe%texture, Vector2(screen_offset_x, screen_offset_y), 0.0, screen_scale, WHITE)
+         call end_shader_mode()
      call end_drawing()
   end do
 
@@ -347,7 +361,6 @@ contains
 end program
 
 ! # Roadmap
-! - TODO: the particles don't scale properly when the window is resized
 ! - TODO: sound effects on placing the shapes and game over
 ! - TODO: customizable board size
 ! - TODO: accessibility: control via keyboard

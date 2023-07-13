@@ -33,15 +33,30 @@ module ui
        hover = -0.10, &
        hold = -0.15)
   ! TODO: checkbox line thickness should be relative
-  real, parameter :: checkbox_line_thickness_px = 10.0
-  integer(c_int32_t), parameter :: checkbox_color = restart_button_color
-  integer, parameter :: restart_button_id = board_size_cl*board_size_cl + 1
-  integer, parameter :: cross_checkbox_id = restart_button_id + 1
-  integer, parameter :: knott_checkbox_id = cross_checkbox_id + 1
+  real,               parameter :: checkbox_line_thickness_px = 10.0
+  integer(c_int32_t), parameter :: checkbox_color             = restart_button_color
+  integer,            parameter :: restart_button_id          = board_size_cl*board_size_cl + 1
+  integer,            parameter :: cross_checkbox_id          = restart_button_id + 1
+  integer,            parameter :: knott_checkbox_id          = cross_checkbox_id + 1
+  integer(c_int),     parameter :: screen_factor              = 120
+  integer(c_int),     parameter :: screen_width_px            = 16*screen_factor
+  integer(c_int),     parameter :: screen_height_px           = 9*screen_factor
 
   integer :: active_button_id = 0
+  real :: screen_scale = 1, screen_offset_x = 0, screen_offset_y = 0
 
 contains
+  subroutine fit_screen_into_window()
+     screen_scale = real(get_render_width())/real(screen_width_px)
+     if (get_render_height() < screen_height_px*screen_scale) then
+        screen_scale = real(get_render_height())/real(screen_height_px)
+     end if
+     screen_offset_x = get_render_width()/2 - screen_width_px*screen_scale/2
+     screen_offset_y = get_render_height()/2 - screen_height_px*screen_scale/2
+     call set_mouse_offset(int(-screen_offset_x), int(-screen_offset_y))
+     call set_mouse_scale(1.0/screen_scale, 1.0/screen_scale)
+  end subroutine fit_screen_into_window
+
   function restart_button(button_font, board_x_px, board_y_px, board_size_px) result(clicked)
     implicit none
     type(Font),intent(in) :: button_font
