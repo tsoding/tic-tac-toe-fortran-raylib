@@ -97,7 +97,7 @@ contains
           state = BUTTON_HOLD
        end if
     else
-       ! TODO: handle the situation when the active button was not rendered on mouse releasea
+       ! TODO: handle the situation when the active button was not rendered on mouse release
        state = BUTTON_UNPRESSED
     end if
   end function button_logic

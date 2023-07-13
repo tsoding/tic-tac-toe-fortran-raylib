@@ -23,7 +23,6 @@ program main
   integer(c_int32_t), parameter :: background_color       = int(z'FF181818', c_int32_t)
   integer, parameter :: font_size = 128
 
-  ! TODO: the particles don't scale properly when the window is resized
   real,    parameter :: particle_min_mag      = 50.0
   real,    parameter :: particle_max_mag      = 400.0
   real,    parameter :: particle_min_size     = 2.0
@@ -348,6 +347,7 @@ contains
 end program
 
 ! # Roadmap
+! - TODO: the particles don't scale properly when the window is resized
 ! - TODO: sound effects on placing the shapes and game over
 ! - TODO: customizable board size
 ! - TODO: accessibility: control via keyboard
