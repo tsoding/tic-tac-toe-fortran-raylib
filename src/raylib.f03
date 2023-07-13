@@ -39,6 +39,25 @@ module raylib
      real(c_float) :: x, y, width, height
   end type Rectangle
 
+  ! typedef struct RenderTexture {
+  !   unsigned int id;        // OpenGL framebuffer object id
+  !   Texture texture;        // Color buffer attachment texture
+  !   Texture depth;          // Depth buffer attachment texture
+  ! } RenderTexture;
+  type, bind(C) :: RenderTexture
+     integer(c_int32_t) :: id
+     type(Texture) :: texture, depth
+  end type RenderTexture
+
+  ! typedef struct Shader {
+  !   unsigned int id;        // Shader program id
+  !   int *locs;              // Shader locations array (RL_MAX_SHADER_LOCATIONS)
+  ! } Shader;
+  type, bind(C) :: Shader
+     integer(c_int32_t) :: id
+     type(c_ptr) :: locs
+  end type Shader
+
   ! TODO: use the Raylib colors
   integer(c_int32_t), parameter :: BLANK = 0
   integer(c_int32_t), parameter :: BLACK = int(z'FF000000', c_int32_t)
@@ -53,7 +72,14 @@ module raylib
 
   ! TODO: Define a proper enumeration for TextureFilter.
   ! I heard Fortran had something for simulating C enumerations
-  integer(c_int), parameter :: TEXTURE_FILTER_BILINEAR = 1
+  enum, bind(C)
+     enumerator :: TEXTURE_FILTER_POINT = 0               ! No filter just pixel approximation
+     enumerator :: TEXTURE_FILTER_BILINEAR                ! Linear filtering
+     enumerator :: TEXTURE_FILTER_TRILINEAR               ! Trilinear filtering (linear with mipmaps)
+     enumerator :: TEXTURE_FILTER_ANISOTROPIC_4X          ! Anisotropic filtering 4x
+     enumerator :: TEXTURE_FILTER_ANISOTROPIC_8X          ! Anisotropic filtering 8x
+     enumerator :: TEXTURE_FILTER_ANISOTROPIC_16X         ! Anisotropic filtering 16x
+  end enum
 
   interface
      subroutine init_window(width,height,title) bind(C, name="InitWindow")
@@ -269,5 +295,72 @@ module raylib
        real(c_float), value :: lineThick
        integer(c_int32_t), value :: color
      end subroutine draw_rectangle_lines_ex
+
+     ! RLAPI RenderTexture LoadRenderTexture(int width, int height);                                          // Load texture for rendering (framebuffer)
+     type(RenderTexture) function load_render_texture(width,height) bind(C, name="LoadRenderTexture")
+       use iso_c_binding, only: c_int
+       import :: RenderTexture
+       integer(c_int),value :: width, height
+     end function load_render_texture
+
+     ! RLAPI void BeginTextureMode(RenderTexture2D target);              // Begin drawing to render texture
+     subroutine begin_texture_mode(target) bind(C, name="BeginTextureMode")
+       import :: RenderTexture
+       type(RenderTexture),value :: target
+     end subroutine begin_texture_mode
+
+     ! RLAPI void EndTextureMode(void);                                  // Ends drawing to render texture
+     subroutine end_texture_mode() bind(C, name="EndTextureMode")
+     end subroutine end_texture_mode
+
+     ! RLAPI void DrawTexture(Texture2D texture, int posX, int posY, Color tint);                               // Draw a Texture2D
+     subroutine draw_texture(tex,posX,posY,tint) bind(C, name="DrawTexture")
+       use iso_c_binding, only: c_int, c_int32_t
+       import :: Texture
+       type(Texture),value :: tex
+       integer(c_int),value :: posX, posY
+       integer(c_int32_t),value :: tint
+     end subroutine draw_texture
+
+     ! RLAPI void DrawTextureEx(Texture2D texture, Vector2 position, float rotation, float scale, Color tint);  // Draw a Texture2D with extended parameters
+     subroutine draw_texture_ex(tex, position, rotation, scale, tint) bind(C, name="DrawTextureEx")
+       use iso_c_binding, only: c_float, c_int32_t
+       import :: Texture, Vector2
+       type(Texture), value :: tex
+       type(Vector2), value :: position
+       real(c_float), value :: rotation, scale
+       integer(c_int32_t), value :: tint
+     end subroutine draw_texture_ex
+
+     !RLAPI Shader LoadShader(const char *vsFileName, const char *fsFileName);   // Load shader from files and bind default locations
+     type(Shader) function load_shader(vsFileName, fsFileName) bind(C, name="LoadShader")
+       use iso_c_binding, only: c_char
+       import :: Shader
+       character(kind=c_char) :: vsFileName(*), fsFileName(*)
+     end function load_shader
+
+     ! RLAPI void BeginShaderMode(Shader shader);                        // Begin custom shader drawing
+     subroutine begin_shader_mode(shad) bind(C, name="BeginShaderMode")
+       import :: Shader
+       type(Shader), value :: shad
+     end subroutine begin_shader_mode
+
+     ! RLAPI void EndShaderMode(void);                                   // End custom shader drawing (use default shader)
+     subroutine end_shader_mode() bind(C, name="EndShaderMode")
+     end subroutine end_shader_mode
+
+     ! RLAPI void SetMouseOffset(int offsetX, int offsetY);          // Set mouse offset
+     subroutine set_mouse_offset(offsetX, offsetY) bind(C, name="SetMouseOffset")
+       use iso_c_binding, only: c_int
+       integer(c_int),value :: offsetX, offsetY
+     end subroutine set_mouse_offset
+
+     ! RLAPI void SetMouseScale(float scaleX, float scaleY);         // Set mouse scaling
+     subroutine set_mouse_scale(scaleX, scaleY) bind(C, name="SetMouseScale")
+       use iso_c_binding, only: c_float
+       real(c_float),value :: scaleX, scaleY
+     end subroutine set_mouse_scale
+
   end interface
 end module raylib
+
