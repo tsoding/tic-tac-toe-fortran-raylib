@@ -58,6 +58,19 @@ module raylib
      type(c_ptr) :: locs
   end type Shader
 
+  ! // Camera2D, defines position/orientation in 2d space
+  ! typedef struct Camera2D {
+  !     Vector2 offset;         // Camera offset (displacement from target)
+  !     Vector2 target;         // Camera target (rotation and zoom origin)
+  !     float rotation;         // Camera rotation in degrees
+  !     float zoom;             // Camera zoom (scaling), should be 1.0f by default
+  ! } Camera2D;
+  type, bind(C) :: Camera2D
+     type(Vector2) :: offset, target
+     real(c_float) :: rotation, zoom
+  end type Camera2D
+
+
   ! TODO: use the Raylib colors
   integer(c_int32_t), parameter :: BLANK = 0
   integer(c_int32_t), parameter :: BLACK = int(z'FF000000', c_int32_t)
@@ -391,6 +404,16 @@ module raylib
        type(c_ptr), value :: val
        integer(c_int), value :: uniformType
      end subroutine set_shader_value
+
+     ! RLAPI void BeginMode2D(Camera2D camera);                          // Begin 2D mode with custom camera (2D)
+     subroutine begin_mode_2d(camera) bind(C, name="BeginMode2D")
+       import :: Camera2D
+       type(Camera2D),value :: camera
+     end subroutine begin_mode_2d
+
+     ! RLAPI void EndMode2D(void);                                       // Ends 2D mode with custom camera
+     subroutine end_mode_2d() bind(C, name="EndMode2D")
+     end subroutine end_mode_2d
   end interface
 end module raylib
 

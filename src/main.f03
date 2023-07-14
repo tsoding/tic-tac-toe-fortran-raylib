@@ -39,18 +39,21 @@ program main
   integer :: state
   type(Font) :: game_font
   type(Particle) :: particles(1000)
-  type(RenderTexture) :: backframe
-  type(Shader) :: backframe_shader
+  type(Camera2D) :: camera
 
   logical, dimension(2) :: ai_checkboxes
   integer :: i
-  real, target :: time
 
   enum, bind(C)
      enumerator :: STATE_GAME = 0
      enumerator :: STATE_WON
      enumerator :: STATE_TIE
   end enum
+
+  camera%offset = Vector2(0, 0)
+  camera%target = Vector2(0, 0)
+  camera%rotation = 0
+  camera%zoom = 1
 
   ai_checkboxes(CELL_CROSS) = .false.
   ai_checkboxes(CELL_KNOTT) = .true.
@@ -65,29 +68,23 @@ program main
   call init_window(16*80, 9*80, "Fortran GOTY"//C_NULL_CHAR)
   call set_target_fps(fps)
 
-  ! TODO: switching to backframe rendering removed anti-aliasing for some reason
-  backframe = load_render_texture(screen_width_px, screen_height_px)
-  call set_texture_filter(backframe%texture, TEXTURE_FILTER_BILINEAR)
-  backframe_shader = load_shader(C_NULL_CHAR, "./shaders/backframe.fs"//C_NULL_CHAR)
-
   ! TODO: set the working directory to where the executable is located
   ! This is needed to be able to locate the assets properly
   game_font = load_font_ex("./fonts/Alegreya-Regular.ttf"//C_NULL_CHAR, font_size, C_NULL_PTR, 0)
   call set_texture_filter(game_font%texture, TEXTURE_FILTER_BILINEAR)
 
   do while (.not. window_should_close())
-     call set_shader_value( &
-          backframe_shader, &
-          get_shader_location(backframe_shader, "time"//C_NULL_CHAR), &
-          c_loc(time), &
-          SHADER_UNIFORM_FLOAT)
 
      call fit_screen_into_window()
-     call begin_texture_mode(backframe)
+
+     camera%offset = Vector2(screen_offset_x, screen_offset_y)
+     camera%zoom = screen_scale
+
+     call begin_drawing()
+     call begin_mode_2d(camera)
      call clear_background(background_color)
 
      dt = get_frame_time()
-     time = time + dt
      board_boundary_width  = screen_width_px*2/3
      board_boundary_height = screen_height_px
 
@@ -117,13 +114,7 @@ program main
      end select
 
      call render_ai_checkboxes(rectangle(board_boundary_width, 0, screen_width_px - board_boundary_width, board_boundary_height))
-     call end_texture_mode()
-
-     call begin_drawing()
-         call clear_background(background_color)
-         call begin_shader_mode(backframe_shader)
-         call draw_texture_ex(backframe%texture, Vector2(screen_offset_x, screen_offset_y), 0.0, screen_scale, WHITE)
-         call end_shader_mode()
+     call end_mode_2d()
      call end_drawing()
   end do
 
