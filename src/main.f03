@@ -109,7 +109,6 @@ program main
      end select
 
      call render_ai_checkboxes(rectangle(board_boundary_width, 0, screen_width_px - board_boundary_width, board_boundary_height))
-     call render_particles(dt)
      call end_texture_mode()
 
      call begin_drawing()
@@ -263,6 +262,7 @@ contains
     implicit none
 
     call render_board(board_x_px, board_y_px, board_size_px, board)
+    call render_particles(dt)
 
     if (restart_button(game_font, board_x_px, board_y_px, board_size_px)) then
       call restart_game()
@@ -273,8 +273,9 @@ contains
     implicit none
 
     call render_board(board_x_px, board_y_px, board_size_px, board)
-    call strikethrough(final_line, board_x_px, board_y_px, board_size_px)
+    call render_particles(dt)
 
+    call strikethrough(final_line, board_x_px, board_y_px, board_size_px)
     if (restart_button(game_font, board_x_px, board_y_px, board_size_px)) then
        call restart_game()
     end if
@@ -351,6 +352,7 @@ contains
           end if
        end if
     end if
+    call render_particles(dt)
   end subroutine render_game_state
 
   subroutine restart_game()
