@@ -71,6 +71,29 @@ module raylib
   end type Camera2D
 
 
+  ! typedef struct AudioStream {
+  !   rAudioBuffer *buffer;       // Pointer to internal data used by the audio system
+  !   rAudioProcessor *processor; // Pointer to internal data processor, useful for audio effects
+  ! 
+  !   unsigned int sampleRate;    // Frequency (samples per second)
+  !   unsigned int sampleSize;    // Bit depth (bits per sample): 8, 16, 32 (24 not supported)
+  !   unsigned int channels;      // Number of channels (1-mono, 2-stereo, ...)
+  ! } AudioStream;
+  type, bind(C) :: AudioStream
+     type(c_ptr) :: rAudioBuffer, rAudioProcessor
+     integer(c_int32_t) :: sampleRate, sampleSize, channels
+  end type AudioStream
+
+  ! typedef struct Sound {
+  !   AudioStream stream;         // Audio stream
+  !   unsigned int frameCount;    // Total number of frames (considering channels)
+  ! } Sound;
+  type, bind(C) :: Sound
+     type(AudioStream) :: stream
+     integer(c_int32_t) :: frameCount
+  end type Sound
+
+
   ! TODO: use the Raylib colors
   integer(c_int32_t), parameter :: BLANK = 0
   integer(c_int32_t), parameter :: BLACK = int(z'FF000000', c_int32_t)
@@ -414,6 +437,22 @@ module raylib
      ! RLAPI void EndMode2D(void);                                       // Ends 2D mode with custom camera
      subroutine end_mode_2d() bind(C, name="EndMode2D")
      end subroutine end_mode_2d
+
+     ! RLAPI Sound LoadSound(const char *fileName);                          // Load sound from file
+     type(Sound) function load_sound(fileName) bind(C, name="LoadSound")
+       use iso_c_binding, only: c_char
+       import :: Sound
+       character(kind=c_char) :: fileName
+     end function load_sound
+     ! RLAPI void InitAudioDevice(void);                                     // Initialize audio device and context
+     subroutine init_audio_device() bind(C, name="InitAudioDevice")
+     end subroutine init_audio_device
+
+     ! RLAPI void PlaySound(Sound sound);                                    // Play a sound
+     subroutine play_sound(snd) bind(C, name="PlaySound")
+       import :: Sound
+       type(Sound),value :: snd
+     end subroutine play_sound
   end interface
 end module raylib
 

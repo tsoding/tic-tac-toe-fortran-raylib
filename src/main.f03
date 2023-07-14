@@ -40,6 +40,7 @@ program main
   type(Font) :: game_font
   type(Particle) :: particles(1000)
   type(Camera2D) :: camera
+  type(Sound) :: click_sound
 
   logical, dimension(2) :: ai_checkboxes
   integer :: i
@@ -66,11 +67,13 @@ program main
   call set_config_flags(FLAG_WINDOW_RESIZABLE)
   call set_config_flags(FLAG_MSAA_4X_HINT)
   call init_window(16*80, 9*80, "Fortran GOTY"//C_NULL_CHAR)
+  call init_audio_device()
   call set_target_fps(fps)
 
   ! TODO: set the working directory to where the executable is located
   ! This is needed to be able to locate the assets properly
   game_font = load_font_ex("./fonts/Alegreya-Regular.ttf"//C_NULL_CHAR, font_size, C_NULL_PTR, 0)
+  click_sound = load_sound("./sounds/misc_26_fixed.ogg"//C_NULL_CHAR)
   call set_texture_filter(game_font%texture, TEXTURE_FILTER_BILINEAR)
 
   do while (.not. window_should_close())
@@ -325,6 +328,7 @@ contains
     else
        if (render_board_clickable(board_x_px, board_y_px, board_size_px, board, x_cl, y_cl)) then
           board(x_cl, y_cl) = current_player
+          call play_sound(click_sound)
           if (player_won(board, CELL_CROSS, final_line)) then
              state = STATE_WON
              call map_tline_on_screen(final_line, board_x_px, board_y_px, board_size_px, start, end)
