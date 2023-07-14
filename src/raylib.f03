@@ -81,6 +81,19 @@ module raylib
      enumerator :: TEXTURE_FILTER_ANISOTROPIC_16X         ! Anisotropic filtering 16x
   end enum
 
+  enum, bind(C)
+    enumerator :: SHADER_UNIFORM_FLOAT = 0       ! Shader uniform type: float
+    enumerator :: SHADER_UNIFORM_VEC2            ! Shader uniform type: vec2 (2 float)
+    enumerator :: SHADER_UNIFORM_VEC3            ! Shader uniform type: vec3 (3 float)
+    enumerator :: SHADER_UNIFORM_VEC4            ! Shader uniform type: vec4 (4 float)
+    enumerator :: SHADER_UNIFORM_INT             ! Shader uniform type: int
+    enumerator :: SHADER_UNIFORM_IVEC2           ! Shader uniform type: ivec2 (2 int)
+    enumerator :: SHADER_UNIFORM_IVEC3           ! Shader uniform type: ivec3 (3 int)
+    enumerator :: SHADER_UNIFORM_IVEC4           ! Shader uniform type: ivec4 (4 int)
+    enumerator :: SHADER_UNIFORM_SAMPLER2D        ! Shader uniform type: sampler2d
+ end enum
+
+
   interface
      subroutine init_window(width,height,title) bind(C, name="InitWindow")
        use iso_c_binding, only: c_char, c_int
@@ -361,6 +374,23 @@ module raylib
        real(c_float),value :: scaleX, scaleY
      end subroutine set_mouse_scale
 
+     ! RLAPI int GetShaderLocation(Shader shader, const char *uniformName);       // Get shader uniform location
+     integer(c_int) function get_shader_location(shad, uniformName) bind(C, name="GetShaderLocation")
+       use iso_c_binding, only: c_char, c_int
+       import :: Shader
+       type(Shader), value :: shad
+       character(kind=c_char) :: uniformName(*)
+     end function get_shader_location
+
+     ! RLAPI void SetShaderValue(Shader shader, int locIndex, const void *value, int uniformType);               // Set shader uniform value
+     subroutine set_shader_value(shad, locIndex, val, uniformType) bind(C, name="SetShaderValue")
+       use iso_c_binding, only: c_int, c_ptr
+       import :: Shader
+       type(Shader), value :: shad
+       integer(c_int), value :: locIndex
+       type(c_ptr), value :: val
+       integer(c_int), value :: uniformType
+     end subroutine set_shader_value
   end interface
 end module raylib
 

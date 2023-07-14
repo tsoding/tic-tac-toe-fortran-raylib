@@ -1,5 +1,5 @@
 program main
-  use iso_c_binding, only: c_int, c_int32_t, C_NULL_CHAR, C_NULL_PTR
+  use iso_c_binding, only: c_int, c_int32_t, C_NULL_CHAR, C_NULL_PTR, c_loc
   use raylib
   use raymath
   use game
@@ -44,6 +44,7 @@ program main
 
   logical, dimension(2) :: ai_checkboxes
   integer :: i
+  real, target :: time
 
   enum, bind(C)
      enumerator :: STATE_GAME = 0
@@ -75,11 +76,18 @@ program main
   call set_texture_filter(game_font%texture, TEXTURE_FILTER_BILINEAR)
 
   do while (.not. window_should_close())
+     call set_shader_value( &
+          backframe_shader, &
+          get_shader_location(backframe_shader, "time"//C_NULL_CHAR), &
+          c_loc(time), &
+          SHADER_UNIFORM_FLOAT)
+
      call fit_screen_into_window()
      call begin_texture_mode(backframe)
      call clear_background(background_color)
 
      dt = get_frame_time()
+     time = time + dt
      board_boundary_width  = screen_width_px*2/3
      board_boundary_height = screen_height_px
 
