@@ -1,29 +1,3 @@
-! TODO: AI does not take into account shorter paths to victory
-! 
-! Let `x` be the human, and `o` be the AI. Consider the following game:
-!
-! ```
-! x..
-! .o.
-! ...
-!
-! x..
-! xo.
-! o..
-!
-! xo.
-! xox
-! o..
-! ```
-!
-! A better move for `o` would've been
-!
-! ```
-! x.o
-! xox
-! o..
-! ```
-
 ! TODO: AI is too slow for border sizes > 3
 ! Speed up ideas to try:
 ! - memoization
@@ -33,16 +7,19 @@ module ai
   use game
   implicit none
 contains
-  recursive function ai_who_wins(board, player, x, y) result(who)
+  recursive function ai_who_wins(board, player, x, y, fturns) result(who)
     implicit none
     integer, dimension(board_size_cl,board_size_cl), intent(inout) :: board
     integer, intent(in) :: player, x, y
+    integer, intent(out) :: fturns
     integer :: who
 
     type(TLine) :: ignore
+    integer :: cturns
     integer :: opponent, next
     integer :: ix, iy
 
+    fturns = 1
     board(x, y) = player
 
     if (player_won(board, CELL_CROSS, ignore)) then
@@ -63,15 +40,24 @@ contains
        return
     end if
 
+    fturns = huge(fturns)
     opponent = 3 - player
 
     who = player
     do ix=1,board_size_cl
        do iy=1,board_size_cl
           if (board(ix, iy) == CELL_EMPTY) then
-             next = ai_who_wins(board, opponent, ix, iy)
-             if (next == 0) who = 0
+             next = ai_who_wins(board, opponent, ix, iy, cturns)
+             cturns = cturns + 1  
+             if (next == player .and. who == player .and. cturns < fturns) then
+                fturns = cturns
+             end if
+             if (next == 0) then
+                fturns = cturns
+                who = 0
+             end if
              if (next == opponent) then
+                fturns = cturns
                 who = opponent
                 board(x, y) = 0
                 return
@@ -88,22 +74,42 @@ contains
     integer, intent(in)  :: player
     integer, intent(out) :: ox, oy
     logical :: giveup
-    integer :: x, y, next
+    integer :: x, y, next, winner
+    integer :: fturns, cturns
+    
+    fturns = huge(fturns)
+    winner = 3-player
     giveup = .true.
+
     do x=1,board_size_cl
        do y=1,board_size_cl
           if (board(x, y) == CELL_EMPTY) then
-             next = ai_who_wins(board, player, x, y)
-             if (next == 0) then
+             ! Play in the first empty space found if we're going to loose anyway 
+             if(giveup) then
+               giveup = .false.
+               ox = x
+               oy = y
+             end if
+
+             next = ai_who_wins(board, player, x, y, cturns)
+             
+             if (next == 0 .and. winner /= player) then
                 giveup = .false.
+                winner = 0
                 ox = x
                 oy = y
              end if
-             if (next == player) then
+            
+             if (next == player .and. cturns < fturns) then
                 giveup = .false.
+                winner = player
                 ox = x
                 oy = y
-                return
+                fturns = cturns
+
+                if(fturns == 1) then
+                   return
+                end if
              end if
           end if
        end do
