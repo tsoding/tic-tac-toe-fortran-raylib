@@ -106,8 +106,6 @@ module raylib
   integer(c_int32_t), parameter :: FLAG_WINDOW_RESIZABLE = int(z'00000004', c_int32_t)
   integer(c_int32_t), parameter :: FLAG_MSAA_4X_HINT     = int(z'00000020', c_int32_t)
 
-  ! TODO: Define a proper enumeration for TextureFilter.
-  ! I heard Fortran had something for simulating C enumerations
   enum, bind(C)
      enumerator :: TEXTURE_FILTER_POINT = 0               ! No filter just pixel approximation
      enumerator :: TEXTURE_FILTER_BILINEAR                ! Linear filtering
