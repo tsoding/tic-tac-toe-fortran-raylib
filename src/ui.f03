@@ -33,7 +33,6 @@ module ui
        color = restart_button_color, &
        hover = -0.10, &
        hold = -0.15)
-  ! TODO: checkbox line thickness should be relative
   real,               parameter :: checkbox_line_thickness_px = 10.0
   integer(c_int32_t), parameter :: checkbox_color             = restart_button_color
   integer,            parameter :: restart_button_id          = board_size_cl*board_size_cl + 1
