@@ -40,6 +40,7 @@ program main
   type(Font) :: game_font
   type(Particle) :: particles(1000)
   type(Sound) :: click_sound
+  logical :: click_played_on_previous_frame, click_played_on_this_frame
 
   logical, dimension(2) :: ai_checkboxes
   integer :: i
@@ -71,6 +72,8 @@ program main
   click_sound = load_sound("./sounds/misc_26_fixed.ogg"//C_NULL_CHAR)
 
   do while (.not. window_should_close())
+     click_played_on_previous_frame = click_played_on_this_frame
+     click_played_on_this_frame = .false.
      call begin_drawing()
        call begin_screen_fitting()
          call clear_background(background_color)
@@ -278,6 +281,10 @@ contains
 
        if (.not. ai_next_move(board, current_player, x_cl, y_cl)) then
           board(x_cl, y_cl) = current_player
+          if (.not. click_played_on_previous_frame) then
+             call play_sound(click_sound)
+             click_played_on_this_frame = .true.
+          end if
           if (player_won(board, CELL_CROSS, final_line)) then
              state = STATE_WON
              call map_tline_on_screen(final_line, board_x_px, board_y_px, board_size_px, start, end)
@@ -309,7 +316,10 @@ contains
     else
        if (render_board_clickable(board_x_px, board_y_px, board_size_px, board, x_cl, y_cl)) then
           board(x_cl, y_cl) = current_player
-          call play_sound(click_sound)
+          if (.not. click_played_on_previous_frame) then
+             call play_sound(click_sound)
+             click_played_on_this_frame = .true.
+          end if
           if (player_won(board, CELL_CROSS, final_line)) then
              state = STATE_WON
              call map_tline_on_screen(final_line, board_x_px, board_y_px, board_size_px, start, end)
