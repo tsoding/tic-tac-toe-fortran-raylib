@@ -18,7 +18,6 @@ program main
   ! - *_cl - cells
   ! - *_rl - relative (fraction of width, height, cell size, etc)
   integer(c_int),     parameter :: fps                    = 60
-  integer(c_int32_t), parameter :: background_color       = int(z'FF181818', c_int32_t)
   integer, parameter :: font_size = 128
 
   real,    parameter :: particle_min_mag      = 50.0

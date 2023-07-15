@@ -15,6 +15,7 @@ module ui
      enumerator :: BUTTON_HOLD
   end enum
 
+  integer(c_int32_t), parameter :: background_color        = int(z'FF181818', c_int32_t)
   integer(c_int32_t), parameter :: cell_color              = int(z'FF252525', c_int32_t)
   integer(c_int32_t), parameter :: knot_color              = int(z'FF3030F0', c_int32_t)
   integer(c_int32_t), parameter :: cross_color             = int(z'FF30F060', c_int32_t)
@@ -146,6 +147,22 @@ contains
     end if
   end subroutine fit_square
 
+  subroutine tick(x, y, s, color)
+    real,               intent(in) :: x, y, s
+    integer(c_int32_t), intent(in) :: color
+    real                           :: thick
+    type(Vector2)                  :: p1, p2, p3
+    thick = s*0.16
+    p1 = Vector2(x + s/4, y + s/2)
+    p2 = Vector2(x + s/2, y + s*2/3)
+    p3 = Vector2(x + s/2 + s/4, y + s/4)
+    call draw_line_ex(p1, p2, thick, color)
+    call draw_line_ex(p2, p3, thick, color)
+    ! call draw_circle_v(p1, thick/2, color)
+    call draw_circle_v(p2, thick/2, color)
+    ! call draw_circle_v(p3, thick/2, color)
+  end subroutine tick
+
   subroutine checkbox(id,shape,boundary,state)
     integer,         intent(in)    :: id, shape
     type(Rectangle), intent(in)    :: boundary
@@ -181,9 +198,18 @@ contains
     end select
 
     if (state) then
-       call draw_rectangle_rec(Rectangle(tick_x, tick_y, tick_s, tick_s), color)
+       call draw_rectangle_rounded(Rectangle(tick_x, tick_y, tick_s, tick_s), 0.1, 10, color)
+       ! call draw_rectangle_rec(Rectangle(tick_x, tick_y, tick_s, tick_s), color)
+       call tick(tick_x, tick_y, tick_s, background_color)
     else
-       call draw_rectangle_lines_ex(Rectangle(tick_x, tick_y, tick_s, tick_s), checkbox_line_thickness_px, color)
+       call draw_rectangle_rounded(Rectangle(tick_x, tick_y, tick_s, tick_s), 0.1, 10, color)
+       call draw_rectangle_rounded( &
+            Rectangle(tick_x + checkbox_line_thickness_px, &
+                      tick_y + checkbox_line_thickness_px, &
+                      tick_s - checkbox_line_thickness_px*2, &
+                      tick_s - checkbox_line_thickness_px*2), &
+            0.1, 10, background_color)
+       ! call draw_rectangle_lines_ex(Rectangle(tick_x, tick_y, tick_s, tick_s), checkbox_line_thickness_px, color)
     end if
 
     select case (shape)
