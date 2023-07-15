@@ -46,16 +46,30 @@ module ui
   real :: screen_scale = 1, screen_offset_x = 0, screen_offset_y = 0
 
 contains
-  subroutine fit_screen_into_window()
-     screen_scale = real(get_render_width())/real(screen_width_px)
-     if (get_render_height() < screen_height_px*screen_scale) then
-        screen_scale = real(get_render_height())/real(screen_height_px)
-     end if
-     screen_offset_x = get_render_width()/2 - screen_width_px*screen_scale/2
-     screen_offset_y = get_render_height()/2 - screen_height_px*screen_scale/2
-     call set_mouse_offset(int(-screen_offset_x), int(-screen_offset_y))
-     call set_mouse_scale(1.0/screen_scale, 1.0/screen_scale)
-  end subroutine fit_screen_into_window
+  subroutine begin_screen_fitting()
+    type(Camera2D) :: camera
+
+    screen_scale = real(get_render_width())/real(screen_width_px)
+    if (get_render_height() < screen_height_px*screen_scale) then
+       screen_scale = real(get_render_height())/real(screen_height_px)
+    end if
+    screen_offset_x = get_render_width()/2 - screen_width_px*screen_scale/2
+    screen_offset_y = get_render_height()/2 - screen_height_px*screen_scale/2
+    call set_mouse_offset(int(-screen_offset_x), int(-screen_offset_y))
+    call set_mouse_scale(1.0/screen_scale, 1.0/screen_scale)
+
+    camera%target = Vector2(0, 0)
+    camera%rotation = 0
+    camera%offset = Vector2(screen_offset_x, screen_offset_y)
+    camera%zoom = screen_scale
+    call begin_mode_2d(camera)
+  end subroutine begin_screen_fitting
+
+  subroutine end_screen_fitting()
+    call set_mouse_offset(0, 0)
+    call set_mouse_scale(1.0, 1.0)
+    call end_mode_2d()
+  end subroutine end_screen_fitting
 
   function restart_button(button_font, board_x_px, board_y_px, board_size_px) result(clicked)
     type(Font), intent(in) :: button_font

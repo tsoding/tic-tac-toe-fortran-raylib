@@ -39,7 +39,6 @@ program main
   integer :: state
   type(Font) :: game_font
   type(Particle) :: particles(1000)
-  type(Camera2D) :: camera
   type(Sound) :: click_sound
 
   logical, dimension(2) :: ai_checkboxes
@@ -50,11 +49,6 @@ program main
      enumerator :: STATE_WON
      enumerator :: STATE_TIE
   end enum
-
-  camera%offset = Vector2(0, 0)
-  camera%target = Vector2(0, 0)
-  camera%rotation = 0
-  camera%zoom = 1
 
   ai_checkboxes(CELL_CROSS) = .false.
   ai_checkboxes(CELL_KNOTT) = .true.
@@ -73,51 +67,49 @@ program main
   ! TODO: set the working directory to where the executable is located
   ! This is needed to be able to locate the assets properly
   game_font = load_font_ex("./fonts/Alegreya-Regular.ttf"//C_NULL_CHAR, font_size, C_NULL_PTR, 0)
-  click_sound = load_sound("./sounds/misc_26_fixed.ogg"//C_NULL_CHAR)
   call set_texture_filter(game_font%texture, TEXTURE_FILTER_BILINEAR)
+  click_sound = load_sound("./sounds/misc_26_fixed.ogg"//C_NULL_CHAR)
 
   do while (.not. window_should_close())
-
-     call fit_screen_into_window()
-
-     camera%offset = Vector2(screen_offset_x, screen_offset_y)
-     camera%zoom = screen_scale
-
      call begin_drawing()
-     call begin_mode_2d(camera)
-     call clear_background(background_color)
+       call begin_screen_fitting()
+         call clear_background(background_color)
 
-     dt = get_frame_time()
-     board_boundary_width  = screen_width_px*2/3
-     board_boundary_height = screen_height_px
+         dt = get_frame_time()
+         board_boundary_width  = screen_width_px*2/3
+         board_boundary_height = screen_height_px
 
-     if (board_boundary_width > board_boundary_height) then
-        board_size_px = board_boundary_height
-        board_x_px = real(board_boundary_width)/2 - board_size_px/2
-        board_y_px = 0
-     else
-        board_size_px = board_boundary_width
-        board_x_px = 0
-        board_y_px = real(board_boundary_height)/2 - board_size_px/2
-     end if
+         if (board_boundary_width > board_boundary_height) then
+            board_size_px = board_boundary_height
+            board_x_px = real(board_boundary_width)/2 - board_size_px/2
+            board_y_px = 0
+         else
+            board_size_px = board_boundary_width
+            board_x_px = 0
+            board_y_px = real(board_boundary_height)/2 - board_size_px/2
+         end if
 
-     board_x_px = board_x_px + board_size_px*board_margin_rl
-     board_y_px = board_y_px + board_size_px*board_margin_rl
-     board_size_px = board_size_px - board_size_px*board_margin_rl*2
+         board_x_px = board_x_px + board_size_px*board_margin_rl
+         board_y_px = board_y_px + board_size_px*board_margin_rl
+         board_size_px = board_size_px - board_size_px*board_margin_rl*2
 
-     cell_size_px = board_size_px/board_size_cl
+         cell_size_px = board_size_px/board_size_cl
 
-     select case (state)
-     case (STATE_GAME)
-        call render_game_state()
-     case (STATE_WON)
-        call render_won_state()
-     case (STATE_TIE)
-        call render_tie_state()
-     end select
+         select case (state)
+         case (STATE_GAME)
+            call render_game_state()
+         case (STATE_WON)
+            call render_won_state()
+         case (STATE_TIE)
+            call render_tie_state()
+         end select
 
-     call render_ai_checkboxes(rectangle(board_boundary_width, 0, screen_width_px - board_boundary_width, board_boundary_height))
-     call end_mode_2d()
+         call render_ai_checkboxes(rectangle( &
+              board_boundary_width, &
+              0, &
+              screen_width_px - board_boundary_width, &
+              board_boundary_height))
+       call end_screen_fitting()
      call end_drawing()
   end do
 
@@ -190,7 +182,7 @@ contains
 
     call spawn_particle(p)
   end subroutine spawn_random_particle_at
-  
+
   subroutine spawn_particle(p)
     type(Particle),intent(in) :: p
     type(Particle) :: pi
