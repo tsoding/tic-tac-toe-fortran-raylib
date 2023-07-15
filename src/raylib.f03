@@ -70,7 +70,6 @@ module raylib
      real(c_float) :: rotation, zoom
   end type Camera2D
 
-
   ! typedef struct AudioStream {
   !   rAudioBuffer *buffer;       // Pointer to internal data used by the audio system
   !   rAudioProcessor *processor; // Pointer to internal data processor, useful for audio effects
@@ -93,14 +92,15 @@ module raylib
      integer(c_int32_t) :: frameCount
   end type Sound
 
-
-  ! TODO: use the Raylib colors
   integer(c_int32_t), parameter :: BLANK = 0
   integer(c_int32_t), parameter :: BLACK = int(z'FF000000', c_int32_t)
   integer(c_int32_t), parameter :: WHITE = int(z'FFFFFFFF', c_int32_t)
-  integer(c_int32_t), parameter :: RED   = int(z'FF0000FF', c_int32_t)
-  integer(c_int32_t), parameter :: GREEN = int(z'FF00FF00', c_int32_t)
-  integer(c_int32_t), parameter :: BLUE  = int(z'FFFF0000', c_int32_t)
+  ! #define RED        CLITERAL(Color){ 230, 41, 55, 255 }     // Red
+  integer(c_int32_t), parameter :: RED   = int(z'FF3729E6', c_int32_t)
+  ! #define GREEN      CLITERAL(Color){ 0, 228, 48, 255 }      // Green
+  integer(c_int32_t), parameter :: GREEN = int(z'FF30E400', c_int32_t)
+  ! #define BLUE       CLITERAL(Color){ 0, 121, 241, 255 }     // Blue
+  integer(c_int32_t), parameter :: BLUE  = int(z'FFF17900', c_int32_t)
   integer(c_int32_t), parameter :: MOUSE_BUTTON_LEFT = 0
 
   integer(c_int32_t), parameter :: FLAG_WINDOW_RESIZABLE = int(z'00000004', c_int32_t)
@@ -124,9 +124,8 @@ module raylib
     enumerator :: SHADER_UNIFORM_IVEC2           ! Shader uniform type: ivec2 (2 int)
     enumerator :: SHADER_UNIFORM_IVEC3           ! Shader uniform type: ivec3 (3 int)
     enumerator :: SHADER_UNIFORM_IVEC4           ! Shader uniform type: ivec4 (4 int)
-    enumerator :: SHADER_UNIFORM_SAMPLER2D        ! Shader uniform type: sampler2d
+    enumerator :: SHADER_UNIFORM_SAMPLER2D       ! Shader uniform type: sampler2d
  end enum
-
 
   interface
      subroutine init_window(width,height,title) bind(C, name="InitWindow")
