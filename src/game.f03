@@ -15,7 +15,6 @@ module game
 
 contains
   function board_full(board) result(ok)
-    implicit none
     integer,dimension(board_size_cl,board_size_cl),intent(in) :: board
     logical :: ok
 
@@ -31,7 +30,6 @@ contains
   end function board_full
 
   function player_won(board, player, line) result(ok)
-    implicit none
     integer,dimension(board_size_cl, board_size_cl),intent(in) :: board
     integer,     intent(in)  :: player
     type(TLine), intent(out) :: line
@@ -59,7 +57,6 @@ contains
   end function player_won
 
   function check_line(board, player, line) result(ok)
-    implicit none
     integer,dimension(board_size_cl, board_size_cl),intent(in) :: board
     integer,intent(in) :: player
     type(TLine),intent(out) :: line

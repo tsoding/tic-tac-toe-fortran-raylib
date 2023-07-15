@@ -8,7 +8,6 @@ module ai
   implicit none
 contains
   recursive function ai_who_wins(board, player, x, y, fturns) result(who)
-    implicit none
     integer, dimension(board_size_cl,board_size_cl), intent(inout) :: board
     integer, intent(in) :: player, x, y
     integer, intent(out) :: fturns
@@ -69,7 +68,6 @@ contains
   end function ai_who_wins
 
   function ai_next_move(board, player, ox, oy) result(giveup)
-    implicit none
     integer, dimension(board_size_cl,board_size_cl), intent(inout) :: board
     integer, intent(in)  :: player
     integer, intent(out) :: ox, oy

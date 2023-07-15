@@ -123,7 +123,6 @@ program main
 
 contains
   pure function lerp(a, b, t) result(c)
-    implicit none
     real, intent(in) :: a, b, t
     real :: c
     c = a + (b - a)*t
@@ -146,7 +145,6 @@ contains
   end subroutine spawn_random_particles_along_line
 
   subroutine spawn_random_particles_in_region(region, count, color)
-    implicit none
     type(Rectangle),intent(in) :: region
     integer,intent(in) :: count
     integer(c_int32_t),intent(in) :: color
@@ -165,7 +163,6 @@ contains
   end subroutine spawn_random_particles_in_region
 
   subroutine spawn_random_particle_at(position,color)
-    implicit none
     type(Vector2),intent(in) :: position
     integer(c_int32_t),intent(in) :: color
 
@@ -195,7 +192,6 @@ contains
   end subroutine spawn_random_particle_at
   
   subroutine spawn_particle(p)
-    implicit none
     type(Particle),intent(in) :: p
     type(Particle) :: pi
     integer :: i
@@ -210,7 +206,6 @@ contains
   end subroutine spawn_particle
 
   subroutine render_particles(dt)
-    implicit none
     real,intent(in) :: dt
     type(Particle) :: p
     integer :: i
@@ -261,8 +256,6 @@ contains
   end subroutine render_ai_checkboxes
 
   subroutine render_tie_state()
-    implicit none
-
     call render_board(board_x_px, board_y_px, board_size_px, board)
     call render_particles(dt)
 
@@ -272,8 +265,6 @@ contains
   end subroutine render_tie_state
 
   subroutine render_won_state()
-    implicit none
-
     call render_board(board_x_px, board_y_px, board_size_px, board)
     call render_particles(dt)
 
@@ -284,8 +275,6 @@ contains
   end subroutine render_won_state
 
   subroutine render_game_state()
-    implicit none
-
     integer :: x_cl, y_cl
     real :: board_cell_size
     type(Vector2) :: start, end

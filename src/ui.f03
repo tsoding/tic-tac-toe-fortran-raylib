@@ -58,7 +58,6 @@ contains
   end subroutine fit_screen_into_window
 
   function restart_button(button_font, board_x_px, board_y_px, board_size_px) result(clicked)
-    implicit none
     type(Font), intent(in) :: button_font
     real,       intent(in) :: board_x_px, board_y_px, board_size_px
     logical :: clicked
@@ -79,7 +78,6 @@ contains
   end function restart_button
 
   subroutine empty_cell(x_px, y_px, s_px, color)
-    implicit none
     real,               intent(in) :: x_px, y_px, s_px
     integer(c_int32_t), intent(in) :: color
 
@@ -135,7 +133,6 @@ contains
   end subroutine fit_square
 
   subroutine checkbox(id,shape,boundary,state)
-    implicit none
     integer,         intent(in)    :: id, shape
     type(Rectangle), intent(in)    :: boundary
     logical,         intent(inout) :: state
@@ -184,7 +181,6 @@ contains
   end subroutine checkbox
 
   function button(id,boundary,style) result(clicked)
-    implicit none
     integer,            intent(in) :: id
     type(Rectangle),    intent(in) :: boundary
     type(Button_Style), intent(in) :: style
@@ -204,7 +200,6 @@ contains
   end function button
 
   function empty_cell_clickable(id,x_px,y_px,s_px) result(clicked)
-    implicit none
     integer, intent(in) :: id
     real,    intent(in) :: x_px, y_px, s_px
     logical :: clicked
@@ -212,7 +207,6 @@ contains
   end function empty_cell_clickable
 
   subroutine knot(x_px,y_px,s_px)
-    implicit none
     real, intent(in) :: x_px, y_px, s_px
 
     type(Vector2) :: center
@@ -227,7 +221,6 @@ contains
   end subroutine knot
 
   subroutine knot_cell(x_px,y_px,s_px)
-    implicit none
     real, intent(in) :: x_px, y_px, s_px
 
     call empty_cell(x_px, y_px, s_px, cell_color)
@@ -235,7 +228,6 @@ contains
   end subroutine knot_cell
 
   subroutine cross(x_px,y_px,s_px)
-    implicit none
     real, intent(in) :: x_px, y_px, s_px
 
     type(Vector2) :: startPos
@@ -259,15 +251,12 @@ contains
   end subroutine cross
 
   subroutine cross_cell(x_px,y_px,s_px)
-    implicit none
     real, intent(in) :: x_px, y_px, s_px
     call empty_cell(x_px, y_px, s_px, cell_color)
     call cross(x_px, y_px, s_px)
   end subroutine cross_cell
 
   subroutine render_board(board_x_px, board_y_px, board_size_px, board)
-    implicit none
-
     real,intent(in) :: board_x_px, board_y_px, board_size_px
     integer,dimension(board_size_cl,board_size_cl),intent(in) :: board
 
@@ -294,8 +283,6 @@ contains
   end subroutine render_board
 
   function render_board_clickable(board_x_px, board_y_px, board_size_px, board, clicked_x_cl, clicked_y_cl) result(clicked)
-    implicit none
-
     real,intent(in) :: board_x_px, board_y_px, board_size_px
     integer,dimension(board_size_cl,board_size_cl),intent(in) :: board
     integer,intent(out) :: clicked_x_cl, clicked_y_cl
@@ -351,7 +338,6 @@ contains
   end subroutine map_tline_on_screen
 
   subroutine strikethrough(final_line, board_x_px, board_y_px, board_size_px)
-    implicit none
     type(TLine), intent(in) :: final_line
     real,        intent(in) :: board_x_px, board_y_px, board_size_px
 
