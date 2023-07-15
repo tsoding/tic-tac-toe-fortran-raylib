@@ -1,6 +1,8 @@
 # Tic-Tac-Toe in Fortran with Raylib
 
-https://github.com/tsoding/tic-tac-toe-fortran-raylib/assets/165283/8629c0c5-ba82-4dce-9b7e-d7e86d392040
+*The video has sound*
+
+https://github.com/tsoding/tic-tac-toe-fortran-raylib/assets/165283/fdb2fffc-7aec-4af0-ad92-cdf69aee769f
 
 ## Quick Start
 
