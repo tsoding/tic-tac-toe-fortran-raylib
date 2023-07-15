@@ -128,6 +128,7 @@ contains
        end if
     else
        ! TODO: handle the situation when the active button was not rendered on mouse release
+       ! If on mouse release the active button was not rendering, it may softlock the whole system
        state = BUTTON_UNPRESSED
     end if
   end function button_logic
