@@ -391,6 +391,3 @@ contains
     call draw_line_ex(startPos, endPos, thick, strikethrough_color)
   end subroutine strikethrough
 end module ui
-
-! TODO: draw_rectangle_rounded, draw_circle_v, etc (basically anything that render circles) has rendering artifacts that make some of the pixels of the background visible
-! We may wanna implement custom versions of those using fragment shaders

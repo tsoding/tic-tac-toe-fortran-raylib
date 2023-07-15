@@ -59,6 +59,8 @@ program main
   call restart_game()
 
   call set_config_flags(FLAG_WINDOW_RESIZABLE)
+  ! TODO: draw_rectangle_rounded, draw_circle_v, etc (basically anything that render circles) has rendering artifacts that make some of the pixels of the background visible when FLAG_MSAA_4X_HINT is enabled
+  ! This could be a bug of Raylib. The implementations may not be taking MSAA into account.
   call set_config_flags(FLAG_MSAA_4X_HINT)
   call init_window(16*80, 9*80, "Fortran GOTY"//C_NULL_CHAR)
   call init_audio_device()
