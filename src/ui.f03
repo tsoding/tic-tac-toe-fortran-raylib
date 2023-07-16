@@ -4,6 +4,11 @@ module ui
   use game
   implicit none
 
+  type :: Square
+     real, dimension(2) :: pos
+     real               :: size
+  end type Square
+
   type :: Button_Style
      integer(c_int32_t) :: color
      real :: hover, hold
@@ -357,32 +362,30 @@ contains
     end do
   end function render_board_clickable
 
-  subroutine map_tline_on_screen(line, board_pos_px, board_size_px, start, end)
+  subroutine map_tline_on_screen(line, board_square, start, end)
     type(TLine),        intent(in)  :: line
-    real, dimension(2), intent(in)  :: board_pos_px
-    real,               intent(in)  :: board_size_px
+    type(Square),       intent(in)  :: board_square
     real, dimension(2), intent(out) :: start, end
 
     real :: cell_size_px
 
-    cell_size_px = board_size_px/board_size_cl
+    cell_size_px = board_square%size/board_size_cl
 
-    start = board_pos_px + (line%p-1)*cell_size_px + cell_size_px/2 + (-line%d)*(cell_size_px/3)
-    end   = board_pos_px + ((line%p-1) + 2*line%d)*cell_size_px + cell_size_px/2 + line%d*(cell_size_px/3)
+    start = board_square%pos + (line%p-1)*cell_size_px + cell_size_px/2 + (-line%d)*(cell_size_px/3)
+    end   = board_square%pos + ((line%p-1) + 2*line%d)*cell_size_px + cell_size_px/2 + line%d*(cell_size_px/3)
   end subroutine map_tline_on_screen
 
-  subroutine strikethrough(final_line, board_pos_px, board_size_px)
+  subroutine strikethrough(final_line, board_square)
     type(TLine),        intent(in) :: final_line
-    real, dimension(2), intent(in) :: board_pos_px
-    real,               intent(in) :: board_size_px
+    type(Square),       intent(in) :: board_square
 
     real :: thick, cell_size_px
     real,dimension(2) :: startPos, endPos
 
-    cell_size_px = board_size_px/board_size_cl
+    cell_size_px = board_square%size/board_size_cl
 
     thick = cell_size_px*0.1
-    call map_tline_on_screen(final_line, board_pos_px, board_size_px, startPos, endPos)
+    call map_tline_on_screen(final_line, board_square, startPos, endPos)
     call draw_line_ex(Vector2(startPos), Vector2(endPos), thick, strikethrough_color)
   end subroutine strikethrough
 end module ui
