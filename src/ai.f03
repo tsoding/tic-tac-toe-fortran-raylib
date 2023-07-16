@@ -7,9 +7,9 @@ module ai
   use game
   implicit none
 contains
-  recursive function ai_who_wins(board, player, x, y, fturns) result(who)
+  recursive function ai_who_wins(board, player, x, y, fturns, depth) result(who)
     integer, dimension(board_size_cl,board_size_cl), intent(inout) :: board
-    integer, intent(in) :: player, x, y
+    integer, intent(in) :: player, x, y, depth
     integer, intent(out) :: fturns
     integer :: who
 
@@ -17,6 +17,11 @@ contains
     integer :: cturns
     integer :: opponent, next
     integer :: ix, iy
+
+    if (depth >= 4) then
+       who = 0
+       return
+    end if
 
     fturns = 1
     board(x, y) = player
@@ -46,7 +51,7 @@ contains
     do ix=1,board_size_cl
        do iy=1,board_size_cl
           if (board(ix, iy) == CELL_EMPTY) then
-             next = ai_who_wins(board, opponent, ix, iy, cturns)
+             next = ai_who_wins(board, opponent, ix, iy, cturns, depth + 1)
              cturns = cturns + 1  
              if (next == player .and. who == player .and. cturns < fturns) then
                 fturns = cturns
@@ -89,7 +94,7 @@ contains
                oy = y
              end if
 
-             next = ai_who_wins(board, player, x, y, cturns)
+             next = ai_who_wins(board, player, x, y, cturns, 1)
              
              if (next == 0 .and. winner /= player) then
                 giveup = .false.
