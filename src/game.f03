@@ -10,7 +10,7 @@ module game
   end enum
 
   type :: TLine
-     integer :: x, y, dx, dy
+     integer, dimension(2) :: p, d
   end type TLine
 
 contains
@@ -39,20 +39,20 @@ contains
 
     ok = .false.
     do i=1,board_size_cl
-       line = tline(i, 1, 0, 1)
+       line = tline([i, 1], [0, 1])
        ok = check_line(board, player, line)
        if (ok) return
 
-       line = tline(1, i, 1, 0)
+       line = tline([1, i], [1, 0])
        ok = check_line(board, player, line)
        if (ok) return
     end do
 
-    line = tline(1, 1, 1, 1)
+    line = tline([1, 1], [1, 1])
     ok = check_line(board, player, line)
     if (ok) return
 
-    line = tline(board_size_cl, 1, -1, 1)
+    line = tline([board_size_cl, 1], [-1, 1])
     ok = check_line(board, player, line)
   end function player_won
 
@@ -62,18 +62,14 @@ contains
     type(TLine),intent(out) :: line
     logical :: ok
 
-    integer :: x, y
+    integer,dimension(2) :: p
 
-    x = line%x
-    y = line%y
+    p = line%p
     ok = .true.
-    do while (1 <= x .AND. x <= board_size_cl .AND. &
-         1 <= y .AND. y <= board_size_cl)
-       ok = board(x, y) == player
+    do while (1 <= p(1) .and. p(1) <= board_size_cl .and. 1 <= p(2) .and. p(2) <= board_size_cl)
+       ok = board(p(1), p(2)) == player
        if (.not. ok) return
-
-       x = x + line%dx
-       y = y + line%dy
+       p = p + line%d
     end do
   end function check_line
 end module game

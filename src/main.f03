@@ -13,7 +13,7 @@ program main
   implicit none
 
   type :: Particle
-     type(Vector2) :: position, velocity
+     real, dimension(2) :: position, velocity
      integer(c_int32_t) :: color
      real :: size, lt_sec, lt_t
   end type Particle
@@ -124,17 +124,17 @@ contains
   end function lerp
 
   subroutine spawn_random_particles_along_line(start, end, count, color)
-    type(Vector2),intent(in) :: start, end
-    integer, intent(in) :: count
-    integer(c_int32_t),intent(in) :: color
+    real, dimension(2),  intent(in) :: start, end
+    integer,             intent(in) :: count
+    integer(c_int32_t),  intent(in) :: color
 
-    type(Vector2) :: position
+    real, dimension(2) :: position
     real :: t, len
     integer :: i
 
     do i=1,count
        call random_number(t)
-       position = vector2_lerp(start, end, t)
+       position = start + (end - start)*t
        call spawn_random_particle_at(position, color)
     end do
   end subroutine spawn_random_particles_along_line
@@ -144,22 +144,19 @@ contains
     integer,intent(in) :: count
     integer(c_int32_t),intent(in) :: color
 
-    type(Vector2) :: position
-    real :: t
+    real, dimension(2) :: position, t
     integer :: i
 
     do i=1,count
        call random_number(t)
-       position%components(1) = lerp(region%x, region%x + region%width, t)
-       call random_number(t)
-       position%components(2) = lerp(region%y, region%y + region%width, t)
+       position = [region%x, region%y] + [region%width, region%height]*t
        call spawn_random_particle_at(position, color)
     end do
   end subroutine spawn_random_particles_in_region
 
   subroutine spawn_random_particle_at(position,color)
-    type(Vector2),intent(in) :: position
-    integer(c_int32_t),intent(in) :: color
+    real, dimension(2), intent(in) :: position
+    integer(c_int32_t), intent(in) :: color
 
     type(Particle) :: p
     real :: angle, mag, t
@@ -168,11 +165,11 @@ contains
     p%position = position
 
     call random_number(t)
-    angle = lerp(0.0, 2.0*pi, t)
+    angle = 2.0*pi*t
 
     call random_number(t)
     mag = lerp(particle_min_mag, particle_max_mag, t)
-    p%velocity = Vector2([cos(angle), sin(angle)]*mag)
+    p%velocity = [cos(angle), sin(angle)]*mag
 
     p%color = color
 
@@ -208,10 +205,10 @@ contains
     do i=1,size(particles)
        p = particles(i)
        if (p%lt_t > 0.0) then
-          particles(i)%velocity = vector2_scale(p%velocity, 0.98)
-          particles(i)%position = vector2_add(p%position, vector2_scale(particles(i)%velocity, dt))
+          particles(i)%velocity = p%velocity*0.98
+          particles(i)%position = p%position + particles(i)%velocity*dt
           particles(i)%lt_t = (p%lt_t*p%lt_sec - dt)/p%lt_sec
-          call draw_circle_v(p%position, p%size, color_alpha(p%color, p%lt_t))
+          call draw_circle_v(Vector2(p%position), p%size, color_alpha(p%color, p%lt_t))
        end if
     end do
   end subroutine render_particles
@@ -270,9 +267,9 @@ contains
   end subroutine render_won_state
 
   subroutine render_game_state()
-    integer :: x_cl, y_cl
-    real :: board_cell_size
-    type(Vector2) :: start, end
+    integer           :: x_cl, y_cl
+    real              :: board_cell_size
+    real,dimension(2) :: start, end
 
     board_cell_size = board_size_px/board_size_cl
 
