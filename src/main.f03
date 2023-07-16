@@ -1,3 +1,8 @@
+! Measure units:
+! - *_px - pixels
+! - *_cl - cells
+! - *_rl - relative (fraction of width, height, cell size, etc)
+
 program main
   use iso_c_binding, only: c_int, c_int32_t, C_NULL_CHAR, C_NULL_PTR, c_loc
   use raylib
@@ -13,13 +18,7 @@ program main
      real :: size, lt_sec, lt_t
   end type Particle
 
-  ! Measure units:
-  ! - *_px - pixels
-  ! - *_cl - cells
-  ! - *_rl - relative (fraction of width, height, cell size, etc)
-  integer(c_int),     parameter :: fps                    = 60
   integer, parameter :: font_size = 128
-
   real,    parameter :: particle_min_mag      = 50.0
   real,    parameter :: particle_max_mag      = 400.0
   real,    parameter :: particle_min_size     = 2.0
@@ -59,12 +58,12 @@ program main
   call restart_game()
 
   call set_config_flags(FLAG_WINDOW_RESIZABLE)
-  ! TODO: draw_rectangle_rounded, draw_circle_v, etc (basically anything that render circles) has rendering artifacts that make some of the pixels of the background visible when FLAG_MSAA_4X_HINT is enabled
+  ! TODO: draw_rectangle_rounded, draw_circle_v, etc (basically anything that renders circles) has rendering artifacts that make some of the pixels of the background visible when FLAG_MSAA_4X_HINT is enabled
   ! This could be a bug of Raylib. The implementations may not be taking MSAA into account.
   call set_config_flags(FLAG_MSAA_4X_HINT)
   call init_window(16*80, 9*80, "Fortran GOTY"//C_NULL_CHAR)
   call init_audio_device()
-  call set_target_fps(fps)
+  call set_target_fps(60)
 
   ! TODO: set the working directory to where the executable is located
   ! This is needed to be able to locate the assets properly
@@ -359,5 +358,5 @@ end program
 
 ! # Roadmap
 ! - TODO: customizable board size
-! - TODO: accessibility: control via keyboard
 ! - TODO: sound volume controls
+! - TODO: accessibility: control via keyboard
