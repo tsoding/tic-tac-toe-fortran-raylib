@@ -58,9 +58,9 @@ contains
     call set_mouse_offset(int(-screen_offset_x), int(-screen_offset_y))
     call set_mouse_scale(1.0/screen_scale, 1.0/screen_scale)
 
-    camera%target = Vector2(0, 0)
+    camera%target = Vector2([0, 0])
     camera%rotation = 0
-    camera%offset = Vector2(screen_offset_x, screen_offset_y)
+    camera%offset = Vector2([screen_offset_x, screen_offset_y])
     camera%zoom = screen_scale
     call begin_mode_2d(camera)
   end subroutine begin_screen_fitting
@@ -87,7 +87,7 @@ contains
     clicked = button(restart_button_id, rec, restart_button_style)
 
     text_size = measure_text_ex(button_font, "Restart"//C_NULL_CHAR, rec%height*0.45, 0.0)
-    text_pos = Vector2(rec%x + rec%width/2 - text_size%x/2, rec%y + rec%height/2 - text_size%y/2)
+    text_pos = Vector2([rec%x, rec%y] + [rec%width, rec%height]/2 - text_size%components/2)
     call draw_text_ex(button_font, "Restart"//C_NULL_CHAR, text_pos, rec%height*0.45, 0.0, BLACK)
   end function restart_button
 
@@ -153,9 +153,9 @@ contains
     real                           :: thick
     type(Vector2)                  :: p1, p2, p3
     thick = s*0.16
-    p1 = Vector2(x + s/4, y + s/2)
-    p2 = Vector2(x + s/2, y + s*2/3)
-    p3 = Vector2(x + s/2 + s/4, y + s/4)
+    p1 = Vector2([x + s/4, y + s/2])
+    p2 = Vector2([x + s/2, y + s*2/3])
+    p3 = Vector2([x + s/2 + s/4, y + s/4])
     call draw_line_ex(p1, p2, thick, color)
     call draw_line_ex(p2, p3, thick, color)
     ! call draw_circle_v(p1, thick/2, color)
@@ -255,8 +255,7 @@ contains
     thick = s_px*0.2
     pad = s_px*0.2
 
-    center%x = x_px + s_px/2
-    center%y = y_px + s_px/2
+    center = Vector2([x_px, y_px] + s_px/2)
     call draw_ring(center, (s_px - pad)/2 - thick, (s_px - pad)/2, 0.0, 360.0, 100, knot_color)
   end subroutine knot
 
@@ -277,16 +276,12 @@ contains
     thick = s_px*0.2
     pad = s_px*0.2
 
-    startPos%x = x_px + pad
-    startPos%y = y_px + pad
-    endPos%x   = x_px + s_px - pad
-    endPos%y   = y_px + s_px - pad
+    startPos   = Vector2([x_px, y_px] + pad)
+    endPos     = Vector2([x_px, y_px] + s_px - pad)
     call draw_line_ex(startPos, endPos, thick, cross_color)
 
-    startPos%x = x_px + s_px - pad
-    startPos%y = y_px + pad
-    endPos%x   = x_px + pad
-    endPos%y   = y_px + s_px - pad
+    startPos = Vector2([x_px + s_px - pad, y_px + pad])
+    endPos   = Vector2([x_px + pad, y_px + s_px - pad])
     call draw_line_ex(startPos, endPos, thick, cross_color)
   end subroutine cross
 
@@ -371,10 +366,10 @@ contains
 
     cell_size_px = board_size_px/board_size_cl
 
-    start%x = board_x_px + (line%x-1)*cell_size_px + cell_size_px/2 + (-line%dx)*(cell_size_px/3)
-    start%y = board_y_px + (line%y-1)*cell_size_px + cell_size_px/2 + (-line%dy)*(cell_size_px/3)
-    end%x   = board_x_px + ((line%x-1) + 2*line%dx)*cell_size_px + cell_size_px/2 + line%dx*(cell_size_px/3)
-    end%y   = board_y_px + ((line%y-1) + 2*line%dy)*cell_size_px + cell_size_px/2 + line%dy*(cell_size_px/3)
+    start%components(1) = board_x_px + (line%x-1)*cell_size_px + cell_size_px/2 + (-line%dx)*(cell_size_px/3)
+    start%components(2) = board_y_px + (line%y-1)*cell_size_px + cell_size_px/2 + (-line%dy)*(cell_size_px/3)
+    end%components(1)   = board_x_px + ((line%x-1) + 2*line%dx)*cell_size_px + cell_size_px/2 + line%dx*(cell_size_px/3)
+    end%components(2)   = board_y_px + ((line%y-1) + 2*line%dy)*cell_size_px + cell_size_px/2 + line%dy*(cell_size_px/3)
   end subroutine map_tline_on_screen
 
   subroutine strikethrough(final_line, board_x_px, board_y_px, board_size_px)

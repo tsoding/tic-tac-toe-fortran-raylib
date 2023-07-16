@@ -3,11 +3,7 @@ module raymath
   implicit none
 
   type, bind(C) :: Vector2
-     real(c_float) :: x, y
-     ! TODO: real(c_float), dimension(2) :: component
-     ! This enables Fortran array operations while maintaining the Raylib interoperability
-     ! For example: draw_circle_v(Vector2(p + v*dt), 10, RED)
-     ! This may require doing a pretty majoir refactoring
+     real(c_float), dimension(2) :: components
   end type Vector2
 
   interface

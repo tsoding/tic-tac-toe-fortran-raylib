@@ -150,9 +150,9 @@ contains
 
     do i=1,count
        call random_number(t)
-       position%x = lerp(region%x, region%x + region%width, t)
+       position%components(1) = lerp(region%x, region%x + region%width, t)
        call random_number(t)
-       position%y = lerp(region%y, region%y + region%width, t)
+       position%components(2) = lerp(region%y, region%y + region%width, t)
        call spawn_random_particle_at(position, color)
     end do
   end subroutine spawn_random_particles_in_region
@@ -172,7 +172,7 @@ contains
 
     call random_number(t)
     mag = lerp(particle_min_mag, particle_max_mag, t)
-    p%velocity = Vector2(cos(angle)*mag, sin(angle)*mag)
+    p%velocity = Vector2([cos(angle), sin(angle)]*mag)
 
     p%color = color
 
@@ -241,9 +241,9 @@ contains
 
     text_size = measure_text_ex(game_font, "AI"//C_NULL_CHAR, checkbox_height_px, 0.0)
     text_pos = Vector2( &
-         cross_boundary%x, &
+         [cross_boundary%x, &
          ! cross_boundary%x + cross_boundary%width/2 - text_size%x/2, &
-         cross_boundary%y - checkbox_height_px - checkbox_padding_px)
+         cross_boundary%y - checkbox_height_px - checkbox_padding_px])
     call draw_text_ex(game_font, "AI"//C_NULL_CHAR, text_pos,checkbox_height_px, 0.0, restart_button_color)
 
     call checkbox(cross_checkbox_id,CELL_CROSS,cross_boundary,ai_checkboxes(CELL_CROSS))
