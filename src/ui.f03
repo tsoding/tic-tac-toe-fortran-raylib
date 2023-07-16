@@ -357,24 +357,24 @@ contains
     end do
   end function render_board_clickable
 
-  subroutine map_tline_on_screen(line, board_x_px, board_y_px, board_size_px, start, end)
+  subroutine map_tline_on_screen(line, board_pos_px, board_size_px, start, end)
     type(TLine),        intent(in)  :: line
-    real,               intent(in)  :: board_x_px, board_y_px, board_size_px
+    real, dimension(2), intent(in)  :: board_pos_px
+    real,               intent(in)  :: board_size_px
     real, dimension(2), intent(out) :: start, end
 
     real :: cell_size_px
-    real,dimension(2) :: p
 
     cell_size_px = board_size_px/board_size_cl
-    p = [board_x_px, board_y_px]
 
-    start = p + (line%p-1)*cell_size_px + cell_size_px/2 + (-line%d)*(cell_size_px/3)
-    end   = p + ((line%p-1) + 2*line%d)*cell_size_px + cell_size_px/2 + line%d*(cell_size_px/3)
+    start = board_pos_px + (line%p-1)*cell_size_px + cell_size_px/2 + (-line%d)*(cell_size_px/3)
+    end   = board_pos_px + ((line%p-1) + 2*line%d)*cell_size_px + cell_size_px/2 + line%d*(cell_size_px/3)
   end subroutine map_tline_on_screen
 
-  subroutine strikethrough(final_line, board_x_px, board_y_px, board_size_px)
-    type(TLine), intent(in) :: final_line
-    real,        intent(in) :: board_x_px, board_y_px, board_size_px
+  subroutine strikethrough(final_line, board_pos_px, board_size_px)
+    type(TLine),        intent(in) :: final_line
+    real, dimension(2), intent(in) :: board_pos_px
+    real,               intent(in) :: board_size_px
 
     real :: thick, cell_size_px
     real,dimension(2) :: startPos, endPos
@@ -382,7 +382,7 @@ contains
     cell_size_px = board_size_px/board_size_cl
 
     thick = cell_size_px*0.1
-    call map_tline_on_screen(final_line, board_x_px, board_y_px, board_size_px, startPos, endPos)
+    call map_tline_on_screen(final_line, board_pos_px, board_size_px, startPos, endPos)
     call draw_line_ex(Vector2(startPos), Vector2(endPos), thick, strikethrough_color)
   end subroutine strikethrough
 end module ui

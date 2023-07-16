@@ -2,7 +2,7 @@
 
 set -xe
 
-FFLAGS="-std=f2003 -fno-range-check"
+FFLAGS="-std=f2003 -fno-range-check -Wall -Wextra -Wno-conversion"
 LIBS="`pkg-config --libs raylib` -lglfw -ldl -lpthread"
 SRC="src/game.f03 src/ai.f03 src/raymath.f03 src/raylib.f03 src/ui.f03 src/main.f03"
 

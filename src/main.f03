@@ -129,7 +129,7 @@ contains
     integer(c_int32_t),  intent(in) :: color
 
     real, dimension(2) :: position
-    real :: t, len
+    real :: t
     integer :: i
 
     do i=1,count
@@ -260,7 +260,7 @@ contains
     call render_board(board_x_px, board_y_px, board_size_px, board)
     call render_particles(dt)
 
-    call strikethrough(final_line, board_x_px, board_y_px, board_size_px)
+    call strikethrough(final_line, [board_x_px, board_y_px], board_size_px)
     if (restart_button(game_font, board_x_px, board_y_px, board_size_px)) then
        call restart_game()
     end if
@@ -284,13 +284,13 @@ contains
           end if
           if (player_won(board, CELL_CROSS, final_line)) then
              state = STATE_WON
-             call map_tline_on_screen(final_line, board_x_px, board_y_px, board_size_px, start, end)
+             call map_tline_on_screen(final_line, [board_x_px, board_y_px], board_size_px, start, end)
              call spawn_random_particles_along_line(start, end, particles_burst_count*3, strikethrough_color)
              return
           end if
           if (player_won(board, CELL_KNOTT, final_line)) then
              state = STATE_WON
-             call map_tline_on_screen(final_line, board_x_px, board_y_px, board_size_px, start, end)
+             call map_tline_on_screen(final_line, [board_x_px, board_y_px], board_size_px, start, end)
              call spawn_random_particles_along_line(start, end, particles_burst_count*3, strikethrough_color)
              return
           end if
@@ -319,13 +319,13 @@ contains
           end if
           if (player_won(board, CELL_CROSS, final_line)) then
              state = STATE_WON
-             call map_tline_on_screen(final_line, board_x_px, board_y_px, board_size_px, start, end)
+             call map_tline_on_screen(final_line, [board_x_px, board_y_px], board_size_px, start, end)
              call spawn_random_particles_along_line(start, end, particles_burst_count*3, strikethrough_color)
              return
           end if
           if (player_won(board, CELL_KNOTT, final_line)) then
              state = STATE_WON
-             call map_tline_on_screen(final_line, board_x_px, board_y_px, board_size_px, start, end)
+             call map_tline_on_screen(final_line, [board_x_px, board_y_px], board_size_px, start, end)
              call spawn_random_particles_along_line(start, end, particles_burst_count*3, strikethrough_color)
              return
           end if
