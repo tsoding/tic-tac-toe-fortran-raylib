@@ -372,7 +372,7 @@ contains
     cell_size_px = board_square%size/board_size_cl
 
     start = board_square%pos + (line%p-1)*cell_size_px + cell_size_px/2 + (-line%d)*(cell_size_px/3)
-    end   = board_square%pos + ((line%p-1) + 2*line%d)*cell_size_px + cell_size_px/2 + line%d*(cell_size_px/3)
+    end   = board_square%pos + ((line%p-1) + (board_size_cl - 1)*line%d)*cell_size_px + cell_size_px/2 + line%d*(cell_size_px/3)
   end subroutine map_tline_on_screen
 
   subroutine strikethrough(final_line, board_square)

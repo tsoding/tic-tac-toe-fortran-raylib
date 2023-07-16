@@ -36,7 +36,7 @@ program main
   type(TLine) :: final_line
   integer :: state
   type(Font) :: game_font
-  type(Particle) :: particles(1000)
+  type(Particle) :: particles(particles_burst_count*board_size_cl*board_size_cl + 10)
   type(Sound) :: click_sound
   logical :: click_played_on_previous_frame, click_played_on_this_frame
 
