@@ -87,7 +87,7 @@ contains
     clicked = button(restart_button_id, rec, restart_button_style)
 
     text_size = measure_text_ex(button_font, "Restart"//C_NULL_CHAR, rec%height*0.45, 0.0)
-    text_pos = Vector2([rec%x, rec%y] + [rec%width, rec%height]/2 - text_size%components/2)
+    text_pos = Vector2([rec%x, rec%y] + [rec%width, rec%height]/2 - text_size%array/2)
     call draw_text_ex(button_font, "Restart"//C_NULL_CHAR, text_pos, rec%height*0.45, 0.0, BLACK)
   end function restart_button
 

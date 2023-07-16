@@ -3,7 +3,7 @@ module raymath
   implicit none
 
   type, bind(C) :: Vector2
-     real(c_float), dimension(2) :: components
+     real(c_float), dimension(2) :: array
   end type Vector2
 
   interface
