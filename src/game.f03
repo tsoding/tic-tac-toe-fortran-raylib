@@ -1,7 +1,7 @@
 module game
   implicit none
 
-  integer, parameter :: board_size_cl = 3
+  integer, parameter :: board_size_cl = 4
 
   enum, bind(C)
      enumerator :: CELL_EMPTY = 0
