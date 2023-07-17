@@ -282,13 +282,13 @@ contains
              call play_sound(click_sound)
              click_played_on_this_frame = .true.
           end if
-          if (player_won(board, CELL_CROSS, final_line)) then
+          if (player_won(board, CELL_CROSS, [x_cl, y_cl], final_line)) then
              state = STATE_WON
              call map_tline_on_screen(final_line, Square([board_x_px, board_y_px], board_size_px), start, end)
              call spawn_random_particles_along_line(start, end, particles_burst_count*3, strikethrough_color)
              return
           end if
-          if (player_won(board, CELL_KNOTT, final_line)) then
+          if (player_won(board, CELL_KNOTT, [x_cl, y_cl], final_line)) then
              state = STATE_WON
              call map_tline_on_screen(final_line, Square([board_x_px, board_y_px], board_size_px), start, end)
              call spawn_random_particles_along_line(start, end, particles_burst_count*3, strikethrough_color)
@@ -317,13 +317,13 @@ contains
              call play_sound(click_sound)
              click_played_on_this_frame = .true.
           end if
-          if (player_won(board, CELL_CROSS, final_line)) then
+          if (player_won(board, CELL_CROSS, [x_cl, y_cl], final_line)) then
              state = STATE_WON
              call map_tline_on_screen(final_line, Square([board_x_px, board_y_px], board_size_px), start, end)
              call spawn_random_particles_along_line(start, end, particles_burst_count*3, strikethrough_color)
              return
           end if
-          if (player_won(board, CELL_KNOTT, final_line)) then
+          if (player_won(board, CELL_KNOTT, [x_cl, y_cl], final_line)) then
              state = STATE_WON
              call map_tline_on_screen(final_line, Square([board_x_px, board_y_px], board_size_px), start, end)
              call spawn_random_particles_along_line(start, end, particles_burst_count*3, strikethrough_color)

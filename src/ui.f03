@@ -362,17 +362,20 @@ contains
     end do
   end function render_board_clickable
 
-  subroutine map_tline_on_screen(line, board_square, start, end)
-    type(TLine),        intent(in)  :: line
-    type(Square),       intent(in)  :: board_square
-    real, dimension(2), intent(out) :: start, end
+  subroutine map_tline_on_screen(line, board_square, start_px, end_px)
+    type(TLine),  intent(in)  :: line
+    type(Square), intent(in)  :: board_square
+    real,         intent(out) :: start_px(2), end_px(2)
+    integer                   :: start_cl(2), end_cl(2)
 
     real :: cell_size_px
 
     cell_size_px = board_square%size/board_size_cl
 
-    start = board_square%pos + (line%p-1)*cell_size_px + cell_size_px/2 + (-line%d)*(cell_size_px/3)
-    end   = board_square%pos + ((line%p-1) + (board_size_cl - 1)*line%d)*cell_size_px + cell_size_px/2 + line%d*(cell_size_px/3)
+    start_cl = line%p
+    end_cl   = line%p + line%d
+    start_px = board_square%pos + (start_cl-1)*cell_size_px + cell_size_px/2
+    end_px   = board_square%pos + (end_cl-1)*cell_size_px   + cell_size_px/2
   end subroutine map_tline_on_screen
 
   subroutine strikethrough(final_line, board_square)

@@ -26,13 +26,13 @@ contains
     fturns = 1
     board(x, y) = player
 
-    if (player_won(board, CELL_CROSS, ignore)) then
+    if (player_won(board, CELL_CROSS, [x, y], ignore)) then
        who = CELL_CROSS
        board(x, y) = 0
        return
     end if
 
-    if (player_won(board, CELL_KNOTT, ignore)) then
+    if (player_won(board, CELL_KNOTT, [x, y], ignore)) then
        who = CELL_KNOTT
        board(x, y) = 0
        return

@@ -1,7 +1,7 @@
 module game
   implicit none
 
-  integer, parameter :: board_size_cl = 3
+  integer, parameter :: board_size_cl = 4
   integer, parameter :: strike_size_cl = 3
 
   enum, bind(C)
@@ -38,58 +38,45 @@ contains
          .and. 1 <= p(2) .and. p(2) <= board_size_cl
   end function in_bounds
 
-  function player_won(board, player, line) result(ok)
+  function player_won(board, player, place, line) result(ok)
     integer,     intent(in)  :: board(board_size_cl, board_size_cl)
     integer,     intent(in)  :: player
+    integer,     intent(in)  :: place(2)
     type(TLine), intent(out) :: line
     logical :: ok
-    logical :: visited(board_size_cl, board_size_cl)
-    integer :: p(2)
+    integer :: i, a, b
 
-    integer :: x, y, dx, dy
-
-    visited(:,:) = .false.
+    integer, parameter :: dirs(4,2) = reshape([ &
+       1, 0, 1, -1, &
+       0, 1, 1, 1 &
+    ], shape(dirs))
 
     ok = .false.
-    do x=1,board_size_cl
-       do y=1,board_size_cl
-          do dx=-1,1
-             do dy=-1,1
-                if (dx /= 0 .or. dy /= 0) then
-                   line = tline([x, y], [dx, dy])
-                   p = line%p + (strike_size_cl - 1)*line%d
-                   if (in_bounds(p) .and. (.not. visited(x + dx, y + dy))) then
-                      ok = check_line(board, player, line, strike_size_cl)
-                      visited(p(1) - dx, p(2) - dy) = .true.
-                      if (ok) return
-                   end if
-                end if
-             end do
-          end do
-       end do
+    do i=1,4
+       a = check_line(board, player, tline(place, dirs(i,:)))
+       b = check_line(board, player, tline(place, -dirs(i,:)))
+       if (a + b - 1 >= strike_size_cl) then
+          line = tline(place - dirs(i,:)*(b-1), dirs(i,:)*(a + b - 1 - 1))
+          ok = .true.
+          return
+       end if
     end do
   end function player_won
 
-  function check_line(board, player, line, steps) result(ok)
-    integer,     intent(in)  :: board(board_size_cl, board_size_cl)
-    integer,     intent(in)  :: player, steps
-    type(TLine), intent(out) :: line
-    logical :: ok
-    integer :: i
+  function check_line(board, player, line) result(steps)
+    integer,     intent(in) :: board(board_size_cl, board_size_cl)
+    integer,     intent(in) :: player
+    type(TLine), intent(in) :: line
+    integer :: steps
 
-    integer,dimension(2) :: p
+    integer :: p(2)
 
-    p = line%p + (steps-1)*line%d
-    if (.not. in_bounds(p)) then
-       ok = .false.
-       return
-    end if
-
-    ok = .true.
-    do i=1,steps
-       p = line%p + (i-1)*line%d
-       ok = board(p(1), p(2)) == player
-       if (.not. ok) return
+    steps = 0
+    p = line%p + steps*line%d
+    do while (in_bounds(p))
+       if (board(p(1), p(2)) /= player) exit
+       steps = steps + 1
+       p = line%p + steps*line%d
     end do
   end function check_line
 end module game
