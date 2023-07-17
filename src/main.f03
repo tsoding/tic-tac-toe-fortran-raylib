@@ -354,7 +354,6 @@ contains
 end program
 
 ! # Roadmap
-! - TODO: Monte Carlo branch backtracking for AI
 ! - TODO: customizable board size
 ! - TODO: sound volume controls
 ! - TODO: accessibility: control via keyboard
