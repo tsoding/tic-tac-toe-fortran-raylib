@@ -1,7 +1,7 @@
 module game
   implicit none
 
-  integer, parameter :: board_size_cl = 4
+  integer, parameter :: board_size_cl = 3
 
   enum, bind(C)
      enumerator :: CELL_EMPTY = 0
@@ -15,7 +15,7 @@ module game
 
 contains
   function board_full(board) result(ok)
-    integer,dimension(board_size_cl,board_size_cl),intent(in) :: board
+    integer, intent(in) :: board(board_size_cl,board_size_cl)
     logical :: ok
 
     integer :: x, y

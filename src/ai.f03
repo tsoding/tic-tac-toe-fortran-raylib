@@ -18,7 +18,7 @@ contains
     integer :: opponent, next
     integer :: ix, iy
 
-    if (depth >= 4) then
+    if (depth >= 7) then
        who = 0
        return
     end if
