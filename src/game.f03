@@ -1,8 +1,8 @@
 module game
   implicit none
 
-  integer, parameter :: board_size_cl = 4
-  integer, parameter :: strike_size_cl = 3
+  integer, parameter :: board_size_cl = 7
+  integer, parameter :: strike_size_cl = 4
 
   enum, bind(C)
      enumerator :: CELL_EMPTY = 0
@@ -16,6 +16,21 @@ module game
   end type TLine
 
 contains
+  function board_empty(board) result(ok)
+    integer, intent(in) :: board(board_size_cl,board_size_cl)
+    logical :: ok
+
+    integer :: x, y
+
+    ok = .true.
+    do x=1,board_size_cl
+       do y=1,board_size_cl
+          ok = board(x, y) == 0
+          if (.not. ok) return
+       end do
+    end do
+  end function board_empty
+  
   function board_full(board) result(ok)
     integer, intent(in) :: board(board_size_cl,board_size_cl)
     logical :: ok

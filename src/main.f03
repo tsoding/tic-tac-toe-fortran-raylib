@@ -354,7 +354,6 @@ contains
 end program
 
 ! # Roadmap
-! - TODO: Modify the rules of the Game so the size of strike is limited (to 3 for instance, but maybe customizable)
 ! - TODO: Monte Carlo branch backtracking for AI
 ! - TODO: customizable board size
 ! - TODO: sound volume controls
