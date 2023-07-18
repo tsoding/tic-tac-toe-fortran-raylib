@@ -7,8 +7,8 @@ module ai
   use game
   implicit none
 
-  integer, parameter :: ai_max_depth = 6
-  integer, parameter :: ai_max_breadth = 3
+  integer, parameter :: ai_max_depth = 7
+  integer, parameter :: ai_max_breadth = 9
 
 contains
   recursive function ai_who_wins(board, player, x, y, fturns, depth) result(who)
