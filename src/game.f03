@@ -16,34 +16,18 @@ module game
   end type TLine
 
 contains
-  function board_empty(board) result(ok)
+  pure function board_empty(board) result(ok)
     integer, intent(in) :: board(board_size_cl,board_size_cl)
     logical :: ok
 
-    integer :: x, y
-
-    ok = .true.
-    do x=1,board_size_cl
-       do y=1,board_size_cl
-          ok = board(x, y) == 0
-          if (.not. ok) return
-       end do
-    end do
+    ok = all(board == 0)
   end function board_empty
-  
-  function board_full(board) result(ok)
+
+  pure function board_full(board) result(ok)
     integer, intent(in) :: board(board_size_cl,board_size_cl)
     logical :: ok
 
-    integer :: x, y
-
-    ok = .true.
-    do x=1,board_size_cl
-       do y=1,board_size_cl
-          ok = board(x, y) /= 0
-          if (.not. ok) return
-       end do
-    end do
+    ok = all(board /= 0)
   end function board_full
 
   pure function in_bounds(p) result(yes)
